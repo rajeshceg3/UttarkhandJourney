@@ -51,11 +51,33 @@
         .subtle-btn { transition: all 0.2s ease-in-out; }
         .subtle-btn:hover { transform: scale(1.05); }
 
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideOut {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(20px); }
+        }
+        @keyframes icon-pop {
+            0% { transform: scale(0); }
+            70% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .itinerary-item.adding { animation: slideIn 0.3s ease forwards; }
+        .itinerary-item.removing { animation: slideOut 0.3s ease forwards; }
+        .add-sidebar-btn .feather-check-circle { animation: icon-pop 0.3s ease-in-out; }
+
         /* --- Sidebar & Location List --- */
         .sidebar { background-color: var(--bg-cream); padding: 2rem; overflow-y: auto; transition: transform 0.3s ease-in-out; }
         .location-item { transition: all 0.2s ease-in-out; border-left: 4px solid transparent; }
         .location-item:hover { background-color: var(--bg-cream-hover); border-left-color: var(--accent-terracotta); transform: translateX(5px); }
         .location-item.active { background-color: var(--bg-cream-hover); border-left-color: var(--accent-sage); }
+
+        /* --- Filter Buttons --- */
+        .filter-btn { transition: all 0.2s ease-in-out; border: 1px solid transparent; }
+        .filter-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .filter-btn.active { border-color: var(--accent-terracotta); background-color: var(--accent-sage); color: white; }
 
         /* --- Itinerary Panel --- */
         #itinerary-panel h2 { border-top: 1px solid #D1CBB8; padding-top: 1.5rem; margin-top: 1.5rem; }
@@ -80,9 +102,48 @@
             .sidebar.open { transform: translateX(0); }
             .mobile-toggle { display: block; }
         }
+
+        /* --- Location Details Modal --- */
+        #location-modal {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1050;
+            display: none; /* Hidden by default */
+            align-items: center;
+            justify-content: center;
+        }
+        #location-modal.show { display: flex; }
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        .modal-close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
+    <!-- Location Detail Modal -->
+    <div id="location-modal">
+        <div class="modal-content">
+            <button class="modal-close-btn">
+                <i data-feather="x" class="w-8 h-8 text-gray-600"></i>
+            </button>
+            <div id="modal-body">
+                <!-- Content will be injected by JS -->
+            </div>
+        </div>
+    </div>
 
     <div class="main-layout">
         <!-- Sidebar -->
@@ -92,6 +153,14 @@
                     <h1 class="text-3xl font-bold text-gray-800">Explore Uttarakhand</h1>
                     <p class="text-md text-gray-600 mt-2">The Land of the Gods</p>
                 </div>
+
+                <div id="filter-container" class="flex justify-center space-x-2 mb-6">
+                    <button data-filter="all" class="filter-btn active px-4 py-2 text-sm font-semibold rounded-full bg-accent-sage text-white shadow">All</button>
+                    <button data-filter="pilgrimage" class="filter-btn px-4 py-2 text-sm font-semibold rounded-full bg-white text-text-indigo shadow">Pilgrimage</button>
+                    <button data-filter="hill-station" class="filter-btn px-4 py-2 text-sm font-semibold rounded-full bg-white text-text-indigo shadow">Hill Station</button>
+                    <button data-filter="park" class="filter-btn px-4 py-2 text-sm font-semibold rounded-full bg-white text-text-indigo shadow">Park</button>
+                </div>
+
                 <div id="location-list" class="space-y-2">
                     <!-- Location items will be injected here by JS -->
                 </div>
@@ -156,21 +225,20 @@
             const itineraryListEl = document.getElementById('itinerary-list');
             const itineraryEmptyEl = document.getElementById('itinerary-empty');
             const clearItineraryBtn = document.getElementById('clear-itinerary-btn');
+            const filterContainer = document.getElementById('filter-container');
             const markers = {};
 
             // --- Core Functions ---
             const renderItinerary = () => {
-                itineraryListEl.innerHTML = '';
-                if (itinerary.length === 0) {
-                    itineraryEmptyEl.style.display = 'block';
-                    clearItineraryBtn.style.display = 'none';
-                } else {
-                    itineraryEmptyEl.style.display = 'none';
-                    clearItineraryBtn.style.display = 'block';
-                    itinerary.forEach(locationId => {
+                const existingIds = Array.from(itineraryListEl.children).map(item => item.dataset.id);
+
+                // Add new items
+                itinerary.forEach(locationId => {
+                    if (!existingIds.includes(locationId)) {
                         const location = locations.find(l => l.id === locationId);
                         const item = document.createElement('div');
-                        item.className = 'itinerary-item flex items-center justify-between p-3 rounded-lg shadow-sm';
+                        item.className = 'itinerary-item flex items-center justify-between p-3 rounded-lg shadow-sm adding';
+                        item.dataset.id = location.id;
                         item.innerHTML = `
                             <span class="font-semibold">${location.title}</span>
                             <button class="remove-btn p-1" data-id="${location.id}">
@@ -178,50 +246,109 @@
                             </button>
                         `;
                         itineraryListEl.appendChild(item);
-                    });
-                }
+                        setTimeout(() => item.classList.remove('adding'), 500);
+                    }
+                });
+
+                // Update visibility
+                itineraryEmptyEl.style.display = itinerary.length === 0 ? 'block' : 'none';
+                clearItineraryBtn.style.display = itinerary.length === 0 ? 'none' : 'block';
+
                 updateButtonStates();
-                feather.replace(); // Re-render icons
+                feather.replace();
             };
 
             const updateButtonStates = () => {
                 document.querySelectorAll('[data-add-id]').forEach(btn => {
                     const id = btn.dataset.addId;
-                    if (itinerary.includes(id)) {
-                        if(btn.tagName === 'BUTTON') {
-                            btn.textContent = 'Added ✔';
-                            btn.disabled = true;
-                        } else {
-                           btn.innerHTML = `<i data-feather="check-circle" class="w-6 h-6 text-green-500"></i>`;
-                        }
+                    const isAdded = itinerary.includes(id);
+
+                    if (btn.tagName === 'BUTTON') {
+                        btn.textContent = isAdded ? 'Added ✔' : 'Add to Trip';
+                        btn.disabled = isAdded;
                     } else {
-                         if(btn.tagName === 'BUTTON') {
-                            btn.textContent = 'Add to Trip';
-                            btn.disabled = false;
-                        } else {
-                           btn.innerHTML = `<i data-feather="plus-circle" class="w-6 h-6 text-blue-500"></i>`;
+                        const icon = isAdded ? 'check-circle' : 'plus-circle';
+                        const color = isAdded ? 'text-green-500' : 'text-blue-500';
+                        if (!btn.innerHTML.includes(icon)) {
+                             btn.innerHTML = `<i data-feather="${icon}" class="w-6 h-6 ${color}"></i>`;
                         }
                     }
                 });
-                 feather.replace();
+                feather.replace();
+            };
+
+            const saveItinerary = () => {
+                localStorage.setItem('tripItinerary', JSON.stringify(itinerary));
+            };
+
+            const loadItinerary = () => {
+                const savedItinerary = localStorage.getItem('tripItinerary');
+                if (savedItinerary) {
+                    itinerary = JSON.parse(savedItinerary);
+                }
             };
 
             const addToItinerary = (id) => {
                 if (!itinerary.includes(id)) {
                     itinerary.push(id);
                     renderItinerary();
+                    saveItinerary();
                 }
             };
             
             const removeFromItinerary = (id) => {
-                itinerary = itinerary.filter(itemId => itemId !== id);
-                renderItinerary();
+                const item = itineraryListEl.querySelector(`[data-id="${id}"]`);
+                if (item) {
+                    item.classList.add('removing');
+                    setTimeout(() => {
+                        itinerary = itinerary.filter(itemId => itemId !== id);
+                        item.remove();
+                        renderItinerary();
+                        saveItinerary();
+                    }, 300);
+                }
+            };
+
+            const filterLocations = (type) => {
+                locations.forEach(loc => {
+                    const locationItem = document.querySelector(`.location-item[data-id="${loc.id}"]`);
+                    const marker = markers[loc.id];
+                    const show = (type === 'all' || loc.type === type);
+
+                    if (locationItem) locationItem.style.display = show ? 'flex' : 'none';
+                    if (marker) {
+                        if (show) {
+                            if (!map.hasLayer(marker)) map.addLayer(marker);
+                        } else {
+                            if (map.hasLayer(marker)) map.removeLayer(marker);
+                        }
+                    }
+                });
+
+                // Update active button style
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.filter === type);
+                     if (btn.dataset.filter === type) {
+                        btn.style.backgroundColor = 'var(--accent-sage)';
+                        btn.style.color = 'white';
+                    } else {
+                        btn.style.backgroundColor = 'white';
+                        btn.style.color = 'var(--text-indigo)';
+                    }
+                });
             };
 
             // --- Event Listeners ---
+            filterContainer.addEventListener('click', (e) => {
+                const filterButton = e.target.closest('.filter-btn');
+                if (filterButton) {
+                    filterLocations(filterButton.dataset.filter);
+                }
+            });
             clearItineraryBtn.addEventListener('click', () => {
                 itinerary = [];
                 renderItinerary();
+                saveItinerary();
             });
 
             itineraryListEl.addEventListener('click', (e) => {
@@ -231,11 +358,48 @@
                 }
             });
 
+            const modal = document.getElementById('location-modal');
+            const modalBody = document.getElementById('modal-body');
+            const closeModalBtn = document.querySelector('.modal-close-btn');
+
+            const openModal = (location) => {
+                modalBody.innerHTML = `
+                    <h2 class="text-3xl font-bold mb-4">${location.title}</h2>
+                    <img src="${location.image}" alt="${location.title}" class="w-full h-64 object-cover rounded-lg mb-4">
+                    <p class="text-lg">${location.description}</p>
+                    <p class="text-sm text-gray-500 mt-4">Type: ${location.type}</p>
+                `;
+                modal.classList.add('show');
+                feather.replace();
+            };
+
+            const closeModal = () => {
+                modal.classList.remove('show');
+            };
+
+            map.on('popupopen', (e) => {
+                const moreInfoBtn = e.popup.getElement().querySelector('.more-info-btn');
+                if (moreInfoBtn) {
+                    moreInfoBtn.addEventListener('click', () => {
+                        const locationId = moreInfoBtn.dataset.id;
+                        const location = locations.find(l => l.id === locationId);
+                        openModal(location);
+                    });
+                }
+            });
+
+            closeModalBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
             // --- Initial Population ---
             locations.forEach((loc, index) => {
                 // Add to sidebar
                 const item = document.createElement('div');
                 item.className = 'location-item p-4 rounded-lg cursor-pointer fade-in flex justify-between items-center';
+                item.dataset.id = loc.id;
                 item.style.animationDelay = `${index * 50}ms`;
                 item.innerHTML = `
                     <div>
@@ -264,6 +428,7 @@
                             <h3 class="popup-title">${loc.title}</h3>
                             <p class="text-sm my-2">${loc.description}</p>
                             <button class="add-to-trip-btn w-full py-2 px-4 rounded-lg font-semibold text-sm subtle-btn" data-add-id="${loc.id}">Add to Trip</button>
+                            <button class="more-info-btn w-full mt-2 py-2 px-4 rounded-lg font-semibold text-sm bg-gray-200 text-gray-700 subtle-btn" data-id="${loc.id}">More Info</button>
                         </div>
                     </div>
                 `));
@@ -289,7 +454,8 @@
             toggleButton.addEventListener('click', (e) => { e.stopPropagation(); sidebar.classList.toggle('open'); });
             document.getElementById('map').addEventListener('click', () => { if (sidebar.classList.contains('open')) sidebar.classList.remove('open'); });
 
-            // --- Final Render ---
+            // --- Load, Render, and Init ---
+            loadItinerary();
             renderItinerary();
             feather.replace();
         });
