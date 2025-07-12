@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explore & Plan Your Trip to Uttarakhand</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+    <!-- Google Fonts: Inter & Lora -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Lora:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Feather Icons for UI elements -->
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <style>
+        /* --- Base & Typography --- */
+        :root {
+            --bg-soft-white: #FCFBF9;
+            --bg-cream: #F4F1DE;
+            --bg-cream-hover: #EAE6D4;
+            --text-indigo: #3D405B;
+            --accent-terracotta: #D98C7A;
+            --accent-sage: #A3B18A;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-soft-white);
+            color: var(--text-indigo);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        h1, h2, h3 { font-family: 'Lora', serif; }
+
+        /* --- Layout --- */
+        .main-layout { display: grid; grid-template-columns: 350px 1fr; height: 100vh; }
+        #map { height: 100%; width: 100%; background-color: #E0E5EC; }
+        
+        /* --- Animations & Transitions --- */
+        .fade-in { animation: fadeIn 1s ease-in-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .subtle-btn { transition: all 0.2s ease-in-out; }
+        .subtle-btn:hover { transform: scale(1.05); }
+
+        /* --- Sidebar & Location List --- */
+        .sidebar { background-color: var(--bg-cream); padding: 2rem; overflow-y: auto; transition: transform 0.3s ease-in-out; }
+        .location-item { transition: all 0.2s ease-in-out; border-left: 4px solid transparent; }
+        .location-item:hover { background-color: var(--bg-cream-hover); border-left-color: var(--accent-terracotta); transform: translateX(5px); }
+        .location-item.active { background-color: var(--bg-cream-hover); border-left-color: var(--accent-sage); }
+
+        /* --- Itinerary Panel --- */
+        #itinerary-panel h2 { border-top: 1px solid #D1CBB8; padding-top: 1.5rem; margin-top: 1.5rem; }
+        .itinerary-item { background-color: white; animation: fadeIn 0.5s ease; }
+        .itinerary-item .remove-btn:hover svg { color: #e53e3e; }
+
+        /* --- Custom Marker & Popup --- */
+        .custom-marker-icon { transition: transform 0.2s ease-in-out; }
+        .custom-marker-icon:hover { transform: scale(1.2); }
+        .leaflet-popup-content-wrapper { background-color: var(--bg-soft-white); color: var(--text-indigo); border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .leaflet-popup-content { margin: 0; width: 250px !important; }
+        .leaflet-popup-tip-container { display: none; }
+        .popup-title { font-family: 'Lora', serif; font-size: 1.25rem; font-weight: 700; }
+        .popup-image { border-radius: 8px 8px 0 0; }
+        .add-to-trip-btn { background-color: var(--accent-sage); color: white; }
+        .add-to-trip-btn:disabled { background-color: #b0be9a; cursor: not-allowed; }
+
+        /* --- Responsive Design --- */
+        @media (max-width: 768px) {
+            .main-layout { grid-template-columns: 1fr; }
+            .sidebar { position: absolute; top: 0; left: 0; bottom: 0; width: 300px; z-index: 1001; transform: translateX(-100%); box-shadow: 2px 0 15px rgba(0,0,0,0.1); }
+            .sidebar.open { transform: translateX(0); }
+            .mobile-toggle { display: block; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-layout">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar fade-in flex flex-col">
+            <div>
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold text-gray-800">Explore Uttarakhand</h1>
+                    <p class="text-md text-gray-600 mt-2">The Land of the Gods</p>
+                </div>
+                <div id="location-list" class="space-y-2">
+                    <!-- Location items will be injected here by JS -->
+                </div>
+            </div>
+            
+            <!-- Itinerary Panel -->
+            <div id="itinerary-panel" class="mt-auto">
+                <h2 class="text-2xl font-bold text-gray-800 text-center mb-4">My Trip Plan</h2>
+                <div id="itinerary-list" class="space-y-2">
+                    <!-- Itinerary items will be injected here -->
+                </div>
+                <p id="itinerary-empty" class="text-center text-gray-500 italic p-4">Your trip is empty. Add locations to get started!</p>
+                <button id="clear-itinerary-btn" class="w-full mt-4 py-2 px-4 rounded-lg text-white bg-red-500 hover:bg-red-600 subtle-btn" style="display: none;">Clear Trip</button>
+            </div>
+        </aside>
+
+        <!-- Map Container -->
+        <main id="map-container" class="relative">
+            <div id="map"></div>
+            <button id="mobile-toggle" class="mobile-toggle hidden absolute top-4 left-4 z-[1000] bg-white p-2 rounded-md shadow-lg">
+                <i data-feather="menu"></i>
+            </button>
+        </main>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // --- State ---
+            let itinerary = [];
+
+            // --- Data ---
+            const locations = [
+                { id: 'dehradun', lat: 30.3165, lng: 78.0322, title: 'Dehradun', description: 'The capital city, nestled in the Doon Valley.', image: 'https://placehold.co/400x300/A7C7E7/FFFFFF?text=Dehradun', type: 'city' },
+                { id: 'haridwar', lat: 29.9457, lng: 78.1642, title: 'Haridwar', description: 'A holy city where the River Ganges enters the plains.', image: 'https://placehold.co/400x300/F8C8DC/FFFFFF?text=Haridwar', type: 'pilgrimage' },
+                { id: 'rishikesh', lat: 30.1314, lng: 78.2913, title: 'Rishikesh', description: 'Known as the "Yoga Capital of the World".', image: 'https://placehold.co/400x300/B2D8B2/FFFFFF?text=Rishikesh', type: 'pilgrimage' },
+                { id: 'nainital', lat: 29.3803, lng: 79.4636, title: 'Nainital', description: 'A charming hill station built around Naini Lake.', image: 'https://placehold.co/400x300/E6E6FA/FFFFFF?text=Nainital', type: 'hill-station' },
+                { id: 'mussoorie', lat: 30.4593, lng: 78.0729, title: 'Mussoorie', description: 'The "Queen of the Hills," with stunning Himalayan views.', image: 'https://placehold.co/400x300/FFDAB9/FFFFFF?text=Mussoorie', type: 'hill-station' },
+                { id: 'badrinath', lat: 30.7423, lng: 79.4934, title: 'Badrinath', description: 'A sacred pilgrimage site dedicated to Lord Vishnu.', image: 'https://placehold.co/400x300/C3B1E1/FFFFFF?text=Badrinath', type: 'pilgrimage' },
+                { id: 'kedarnath', lat: 30.6046, lng: 79.0659, title: 'Kedarnath', description: 'Home to the ancient Kedarnath Temple.', image: 'https://placehold.co/400x300/F5DEB3/FFFFFF?text=Kedarnath', type: 'pilgrimage' },
+                { id: 'corbett', lat: 29.5845, lng: 79.4565, title: 'Jim Corbett NP', description: 'India\'s oldest national park, home to the Bengal tiger.', image: 'https://placehold.co/400x300/98FB98/FFFFFF?text=Corbett', type: 'park' },
+                { id: 'valley_of_flowers', lat: 30.6976, lng: 79.5663, title: 'Valley of Flowers', description: 'A vibrant national park with alpine flowers.', image: 'https://placehold.co/400x300/FFB6C1/FFFFFF?text=Valley+of+Flowers', type: 'park' },
+                { id: 'auli', lat: 30.5293, lng: 79.5639, title: 'Auli', description: 'A premier ski destination with panoramic views.', image: 'https://placehold.co/400x300/ADD8E6/FFFFFF?text=Auli', type: 'hill-station' }
+            ];
+
+            // --- Map Initialization ---
+            const map = L.map('map', { center: [30.0668, 79.0193], zoom: 8, zoomControl: false });
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', { attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a>' }).addTo(map);
+
+            // --- Icons ---
+            const icons = {
+                'hill-station': `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D98C7A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L2 21h20L12 3zM8.5 14l2.5 3 3-4.5 2.5 3.5"/></svg>`,
+                'pilgrimage': `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D98C7A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>`,
+                'park': `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D98C7A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.9 10.9c-1.3 3.3-3.3 6.6-6.4 9.3-2.3 2-4.8 3.3-7.5 3.8-1.1.2-2.2-.4-2.7-1.4s-.2-2.3.6-3.1c.9-.9 2.1-1.5 3.4-1.9 2.2-.7 4.5-2 6.5-3.8 2.2-2 4-4.5 5.2-7.4.4-1 .1-2.2-.8-2.8-.9-.6-2.1-.4-2.8.5-1.1 1.4-2.4 3.1-3.7 4.8m-2.1-2.1c-.2.2-.4.4-.6.6"></path></svg>`,
+                'city': `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D98C7A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>`
+            };
+
+            const locationListEl = document.getElementById('location-list');
+            const itineraryListEl = document.getElementById('itinerary-list');
+            const itineraryEmptyEl = document.getElementById('itinerary-empty');
+            const clearItineraryBtn = document.getElementById('clear-itinerary-btn');
+            const markers = {};
+
+            // --- Core Functions ---
+            const renderItinerary = () => {
+                itineraryListEl.innerHTML = '';
+                if (itinerary.length === 0) {
+                    itineraryEmptyEl.style.display = 'block';
+                    clearItineraryBtn.style.display = 'none';
+                } else {
+                    itineraryEmptyEl.style.display = 'none';
+                    clearItineraryBtn.style.display = 'block';
+                    itinerary.forEach(locationId => {
+                        const location = locations.find(l => l.id === locationId);
+                        const item = document.createElement('div');
+                        item.className = 'itinerary-item flex items-center justify-between p-3 rounded-lg shadow-sm';
+                        item.innerHTML = `
+                            <span class="font-semibold">${location.title}</span>
+                            <button class="remove-btn p-1" data-id="${location.id}">
+                                <i data-feather="x" class="w-5 h-5 text-gray-500"></i>
+                            </button>
+                        `;
+                        itineraryListEl.appendChild(item);
+                    });
+                }
+                updateButtonStates();
+                feather.replace(); // Re-render icons
+            };
+
+            const updateButtonStates = () => {
+                document.querySelectorAll('[data-add-id]').forEach(btn => {
+                    const id = btn.dataset.addId;
+                    if (itinerary.includes(id)) {
+                        if(btn.tagName === 'BUTTON') {
+                            btn.textContent = 'Added ✔';
+                            btn.disabled = true;
+                        } else {
+                           btn.innerHTML = `<i data-feather="check-circle" class="w-6 h-6 text-green-500"></i>`;
+                        }
+                    } else {
+                         if(btn.tagName === 'BUTTON') {
+                            btn.textContent = 'Add to Trip';
+                            btn.disabled = false;
+                        } else {
+                           btn.innerHTML = `<i data-feather="plus-circle" class="w-6 h-6 text-blue-500"></i>`;
+                        }
+                    }
+                });
+                 feather.replace();
+            };
+
+            const addToItinerary = (id) => {
+                if (!itinerary.includes(id)) {
+                    itinerary.push(id);
+                    renderItinerary();
+                }
+            };
+            
+            const removeFromItinerary = (id) => {
+                itinerary = itinerary.filter(itemId => itemId !== id);
+                renderItinerary();
+            };
+
+            // --- Event Listeners ---
+            clearItineraryBtn.addEventListener('click', () => {
+                itinerary = [];
+                renderItinerary();
+            });
+
+            itineraryListEl.addEventListener('click', (e) => {
+                const removeButton = e.target.closest('.remove-btn');
+                if (removeButton) {
+                    removeFromItinerary(removeButton.dataset.id);
+                }
+            });
+
+            // --- Initial Population ---
+            locations.forEach((loc, index) => {
+                // Add to sidebar
+                const item = document.createElement('div');
+                item.className = 'location-item p-4 rounded-lg cursor-pointer fade-in flex justify-between items-center';
+                item.style.animationDelay = `${index * 50}ms`;
+                item.innerHTML = `
+                    <div>
+                        <h3 class="font-bold text-lg">${loc.title}</h3>
+                        <p class="text-sm text-gray-600">${loc.description}</p>
+                    </div>
+                    <button class="add-sidebar-btn p-1 subtle-btn" data-add-id="${loc.id}"></button>
+                `;
+                item.querySelector('div').addEventListener('click', () => {
+                    map.flyTo([loc.lat, loc.lng], 13);
+                    markers[loc.id].openPopup();
+                });
+                item.querySelector('.add-sidebar-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    addToItinerary(loc.id);
+                });
+                locationListEl.appendChild(item);
+
+                // Add marker to map
+                const customIcon = L.divIcon({ html: `<div class="custom-marker-icon">${icons[loc.type] || icons['city']}</div>`, className: '', iconSize: [28, 28], iconAnchor: [14, 28], popupAnchor: [0, -28] });
+                const marker = L.marker([loc.lat, loc.lng], { icon: customIcon }).addTo(map);
+                marker.bindPopup(L.popup({closeButton: false}).setContent(`
+                    <div>
+                        <img src="${loc.image}" alt="${loc.title}" class="popup-image w-full h-32 object-cover">
+                        <div class="p-4">
+                            <h3 class="popup-title">${loc.title}</h3>
+                            <p class="text-sm my-2">${loc.description}</p>
+                            <button class="add-to-trip-btn w-full py-2 px-4 rounded-lg font-semibold text-sm subtle-btn" data-add-id="${loc.id}">Add to Trip</button>
+                        </div>
+                    </div>
+                `));
+
+                marker.on('click', () => {
+                    document.querySelectorAll('.location-item').forEach(el => el.classList.remove('active'));
+                    item.classList.add('active');
+                });
+                
+                marker.getPopup().on('add', () => {
+                    updateButtonStates();
+                    document.querySelector(`.leaflet-popup-content button[data-add-id="${loc.id}"]`).addEventListener('click', () => {
+                        addToItinerary(loc.id);
+                    });
+                });
+
+                markers[loc.id] = marker;
+            });
+            
+            // --- Mobile Sidebar Toggle ---
+            const sidebar = document.getElementById('sidebar');
+            const toggleButton = document.getElementById('mobile-toggle');
+            toggleButton.addEventListener('click', (e) => { e.stopPropagation(); sidebar.classList.toggle('open'); });
+            document.getElementById('map').addEventListener('click', () => { if (sidebar.classList.contains('open')) sidebar.classList.remove('open'); });
+
+            // --- Final Render ---
+            renderItinerary();
+            feather.replace();
+        });
+    </script>
+</body>
+</html>
