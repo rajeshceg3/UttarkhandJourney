@@ -8,10 +8,10 @@
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 
-    <!-- Google Fonts: Inter & Lora -->
+    <!-- Google Fonts: Playfair Display & Montserrat -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Lora:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -22,21 +22,33 @@
     <style>
         /* --- Base & Typography --- */
         :root {
-            --bg-soft-white: #FCFBF9;
-            --bg-cream: #F4F1DE;
-            --bg-cream-hover: #EAE6D4;
-            --text-indigo: #3D405B;
-            --accent-terracotta: #D98C7A;
-            --accent-sage: #A3B18A;
+            --primary-bg: #FFFFFF;
+            --secondary-bg: #F0F4F8;
+            --secondary-bg-hover: #E5E9ED;
+            --primary-text: #1A202C;
+            --secondary-text: #4A5568;
+            --accent-color: #3182CE;
+            --accent-color-dark: #2B6CB0;
         }
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-soft-white);
-            color: var(--text-indigo);
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--primary-text);
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
-        h1, h2, h3 { font-family: 'Lora', serif; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Playfair Display', serif; }
+
+        /* --- Dark Mode --- */
+        body.dark-mode {
+            --primary-bg: #1A202C;
+            --secondary-bg: #2D3748;
+            --secondary-bg-hover: #4A5568;
+            --primary-text: #F7FAFC;
+            --secondary-text: #A0AEC0;
+            --accent-color: #4299E1;
+            --accent-color-dark: #2B6CB0;
+        }
 
         /* --- Layout --- */
         .main-layout { display: grid; grid-template-columns: 350px 1fr; height: 100vh; }
@@ -69,31 +81,55 @@
         .add-sidebar-btn .feather-check-circle { animation: icon-pop 0.3s ease-in-out; }
 
         /* --- Sidebar & Location List --- */
-        .sidebar { background-color: var(--bg-cream); padding: 2rem; overflow-y: auto; transition: transform 0.3s ease-in-out; }
+        .sidebar { background-color: var(--secondary-bg); padding: 2rem; overflow-y: auto; transition: transform 0.3s ease-in-out; }
         .location-item { transition: all 0.2s ease-in-out; border-left: 4px solid transparent; }
-        .location-item:hover { background-color: var(--bg-cream-hover); border-left-color: var(--accent-terracotta); transform: translateX(5px); }
-        .location-item.active { background-color: var(--bg-cream-hover); border-left-color: var(--accent-sage); }
+        .location-item:hover { background-color: var(--secondary-bg-hover); border-left-color: var(--accent-color); transform: translateX(5px); }
+        .location-item.active { background-color: var(--secondary-bg-hover); border-left-color: var(--accent-color-dark); }
 
         /* --- Filter Buttons --- */
         .filter-btn { transition: all 0.2s ease-in-out; border: 1px solid transparent; }
         .filter-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .filter-btn.active { border-color: var(--accent-terracotta); background-color: var(--accent-sage); color: white; }
+        .filter-btn.active { border-color: var(--accent-color); background-color: var(--accent-color-dark); color: white; }
 
         /* --- Itinerary Panel --- */
         #itinerary-panel h2 { border-top: 1px solid #D1CBB8; padding-top: 1.5rem; margin-top: 1.5rem; }
-        .itinerary-item { background-color: white; animation: fadeIn 0.5s ease; }
-        .itinerary-item .remove-btn:hover svg { color: #e53e3e; }
+        #itinerary-panel {
+            border-top: 2px solid var(--secondary-bg-hover);
+        }
+        .itinerary-item {
+            background-color: var(--primary-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        .itinerary-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .itinerary-item .remove-btn svg {
+            transition: color 0.2s ease;
+        }
+        .itinerary-item .remove-btn:hover svg {
+            color: #E53E3E; /* A brighter red for hover */
+        }
 
         /* --- Custom Marker & Popup --- */
-        .custom-marker-icon { transition: transform 0.2s ease-in-out; }
+        @keyframes marker-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .custom-marker-icon {
+            transition: transform 0.2s ease-in-out;
+            animation: marker-bounce 2s infinite;
+        }
         .custom-marker-icon:hover { transform: scale(1.2); }
-        .leaflet-popup-content-wrapper { background-color: var(--bg-soft-white); color: var(--text-indigo); border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .leaflet-popup-content-wrapper { background-color: var(--primary-bg); color: var(--primary-text); border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .leaflet-popup-content { margin: 0; width: 250px !important; }
         .leaflet-popup-tip-container { display: none; }
-        .popup-title { font-family: 'Lora', serif; font-size: 1.25rem; font-weight: 700; }
+        .popup-title { font-family: 'Playfair Display', serif; font-size: 1.25rem; font-weight: 700; }
         .popup-image { border-radius: 8px 8px 0 0; }
-        .add-to-trip-btn { background-color: var(--accent-sage); color: white; }
-        .add-to-trip-btn:disabled { background-color: #b0be9a; cursor: not-allowed; }
+        .add-to-trip-btn { background-color: var(--accent-color); color: white; }
+        .add-to-trip-btn:disabled { background-color: #63B3ED; cursor: not-allowed; }
 
         /* --- Responsive Design --- */
         @media (max-width: 768px) {
@@ -148,17 +184,17 @@
     <div class="main-layout">
         <!-- Sidebar -->
         <aside id="sidebar" class="sidebar fade-in flex flex-col">
-            <div>
+            <div class="flex-grow">
                 <div class="text-center mb-8">
-                    <h1 class="text-3xl font-bold text-gray-800">Explore Uttarakhand</h1>
-                    <p class="text-md text-gray-600 mt-2">The Land of the Gods</p>
+                    <h1 class="text-4xl font-bold text-primary-text">Explore Uttarakhand</h1>
+                    <p class="text-md text-secondary-text mt-2">The Land of the Gods</p>
                 </div>
 
                 <div id="filter-container" class="flex justify-center space-x-2 mb-6">
-                    <button data-filter="all" class="filter-btn active px-4 py-2 text-sm font-semibold rounded-full bg-accent-sage text-white shadow">All</button>
-                    <button data-filter="pilgrimage" class="filter-btn px-4 py-2 text-sm font-semibold rounded-full bg-white text-text-indigo shadow">Pilgrimage</button>
-                    <button data-filter="hill-station" class="filter-btn px-4 py-2 text-sm font-semibold rounded-full bg-white text-text-indigo shadow">Hill Station</button>
-                    <button data-filter="park" class="filter-btn px-4 py-2 text-sm font-semibold rounded-full bg-white text-text-indigo shadow">Park</button>
+                    <button data-filter="all" class="filter-btn active px-4 py-2 text-sm font-semibold rounded-full bg-accent-color-dark text-white shadow">All</button>
+                    <button data-filter="pilgrimage" class="filter-btn px-4 py-2 text-sm font-semibold rounded-full bg-white text-primary-text shadow">Pilgrimage</button>
+                    <button data-filter="hill-station" class="filter-btn px-4 py-2 text-sm font-semibold rounded-full bg-white text-primary-text shadow">Hill Station</button>
+                    <button data-filter="park" class="filter-btn px-4 py-2 text-sm font-semibold rounded-full bg-white text-primary-text shadow">Park</button>
                 </div>
 
                 <div id="location-list" class="space-y-2">
@@ -167,14 +203,22 @@
             </div>
             
             <!-- Itinerary Panel -->
-            <div id="itinerary-panel" class="mt-auto">
-                <h2 class="text-2xl font-bold text-gray-800 text-center mb-4">My Trip Plan</h2>
-                <div id="itinerary-list" class="space-y-2">
+            <div id="itinerary-panel" class="mt-auto pt-6">
+                <h2 class="text-2xl font-bold text-primary-text text-center mb-4">My Trip Plan</h2>
+                <div id="itinerary-list" class="space-y-3">
                     <!-- Itinerary items will be injected here -->
                 </div>
-                <p id="itinerary-empty" class="text-center text-gray-500 italic p-4">Your trip is empty. Add locations to get started!</p>
+                <p id="itinerary-empty" class="text-center text-secondary-text italic p-4">Your trip is empty. Add locations to get started!</p>
                 <button id="clear-itinerary-btn" class="w-full mt-4 py-2 px-4 rounded-lg text-white bg-red-500 hover:bg-red-600 subtle-btn" style="display: none;">Clear Trip</button>
             </div>
+        </div>
+        <div class="p-4 flex justify-end items-center">
+             <span class="text-sm text-secondary-text mr-2">Dark Mode</span>
+            <label for="dark-mode-toggle" class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="dark-mode-toggle" class="sr-only peer">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+            </label>
+        </div>
         </aside>
 
         <!-- Map Container -->
@@ -215,10 +259,10 @@
 
             // --- Icons ---
             const icons = {
-                'hill-station': `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D98C7A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L2 21h20L12 3zM8.5 14l2.5 3 3-4.5 2.5 3.5"/></svg>`,
-                'pilgrimage': `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D98C7A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>`,
-                'park': `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D98C7A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.9 10.9c-1.3 3.3-3.3 6.6-6.4 9.3-2.3 2-4.8 3.3-7.5 3.8-1.1.2-2.2-.4-2.7-1.4s-.2-2.3.6-3.1c.9-.9 2.1-1.5 3.4-1.9 2.2-.7 4.5-2 6.5-3.8 2.2-2 4-4.5 5.2-7.4.4-1 .1-2.2-.8-2.8-.9-.6-2.1-.4-2.8.5-1.1 1.4-2.4 3.1-3.7 4.8m-2.1-2.1c-.2.2-.4.4-.6.6"></path></svg>`,
-                'city': `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D98C7A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>`
+                'hill-station': `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L2 21h20L12 3zM8.5 14l2.5 3 3-4.5 2.5 3.5"/></svg>`,
+                'pilgrimage': `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>`,
+                'park': `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.9 10.9c-1.3 3.3-3.3 6.6-6.4 9.3-2.3 2-4.8 3.3-7.5 3.8-1.1.2-2.2-.4-2.7-1.4s-.2-2.3.6-3.1c.9-.9 2.1-1.5 3.4-1.9 2.2-.7 4.5-2 6.5-3.8 2.2-2 4-4.5 5.2-7.4.4-1 .1-2.2-.8-2.8-.9-.6-2.1-.4-2.8.5-1.1 1.4-2.4 3.1-3.7 4.8m-2.1-2.1c-.2.2-.4.4-.6.6"></path></svg>`,
+                'city': `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>`
             };
 
             const locationListEl = document.getElementById('location-list');
@@ -237,12 +281,12 @@
                     if (!existingIds.includes(locationId)) {
                         const location = locations.find(l => l.id === locationId);
                         const item = document.createElement('div');
-                        item.className = 'itinerary-item flex items-center justify-between p-3 rounded-lg shadow-sm adding';
+                        item.className = 'itinerary-item flex items-center justify-between p-3 adding';
                         item.dataset.id = location.id;
                         item.innerHTML = `
-                            <span class="font-semibold">${location.title}</span>
+                            <span class="font-semibold text-primary-text">${location.title}</span>
                             <button class="remove-btn p-1" data-id="${location.id}">
-                                <i data-feather="x" class="w-5 h-5 text-gray-500"></i>
+                                <i data-feather="x" class="w-5 h-5 text-secondary-text"></i>
                             </button>
                         `;
                         itineraryListEl.appendChild(item);
@@ -263,14 +307,25 @@
                     const id = btn.dataset.addId;
                     const isAdded = itinerary.includes(id);
 
-                    if (btn.tagName === 'BUTTON') {
-                        btn.textContent = isAdded ? 'Added ✔' : 'Add to Trip';
+                    if (btn.tagName === 'BUTTON') { // Popup button
                         btn.disabled = isAdded;
-                    } else {
+                        if (isAdded) {
+                            btn.innerHTML = `<i data-feather="check" class="w-5 h-5 mr-2"></i>Added`;
+                            btn.classList.add('bg-green-500', 'hover:bg-green-600');
+                            btn.classList.remove('bg-accent-color', 'hover:bg-accent-color-dark');
+                        } else {
+                            btn.innerHTML = `Add to Trip`;
+                             btn.classList.remove('bg-green-500', 'hover:bg-green-600');
+                            btn.classList.add('bg-accent-color', 'hover:bg-accent-color-dark');
+                        }
+                    } else { // Sidebar button
                         const icon = isAdded ? 'check-circle' : 'plus-circle';
-                        const color = isAdded ? 'text-green-500' : 'text-blue-500';
+                        const color = isAdded ? 'text-green-500' : 'text-accent-color';
                         if (!btn.innerHTML.includes(icon)) {
-                             btn.innerHTML = `<i data-feather="${icon}" class="w-6 h-6 ${color}"></i>`;
+                            btn.innerHTML = `<i data-feather="${icon}" class="w-6 h-6 ${color}"></i>`;
+                            if (isAdded) {
+                                btn.classList.add('add-sidebar-btn');
+                            }
                         }
                     }
                 });
@@ -329,11 +384,11 @@
                 document.querySelectorAll('.filter-btn').forEach(btn => {
                     btn.classList.toggle('active', btn.dataset.filter === type);
                      if (btn.dataset.filter === type) {
-                        btn.style.backgroundColor = 'var(--accent-sage)';
+                        btn.style.backgroundColor = 'var(--accent-color-dark)';
                         btn.style.color = 'white';
                     } else {
-                        btn.style.backgroundColor = 'white';
-                        btn.style.color = 'var(--text-indigo)';
+                        btn.style.backgroundColor = 'var(--primary-bg)';
+                        btn.style.color = 'var(--primary-text)';
                     }
                 });
             };
@@ -453,6 +508,35 @@
             const toggleButton = document.getElementById('mobile-toggle');
             toggleButton.addEventListener('click', (e) => { e.stopPropagation(); sidebar.classList.toggle('open'); });
             document.getElementById('map').addEventListener('click', () => { if (sidebar.classList.contains('open')) sidebar.classList.remove('open'); });
+
+            // --- Dark Mode ---
+            const darkModeToggle = document.getElementById('dark-mode-toggle');
+            const body = document.body;
+
+            const enableDarkMode = () => {
+                body.classList.add('dark-mode');
+                localStorage.setItem('darkMode', 'enabled');
+                darkModeToggle.checked = true;
+            };
+
+            const disableDarkMode = () => {
+                body.classList.remove('dark-mode');
+                localStorage.setItem('darkMode', 'disabled');
+                darkModeToggle.checked = false;
+            };
+
+            darkModeToggle.addEventListener('change', () => {
+                if (darkModeToggle.checked) {
+                    enableDarkMode();
+                } else {
+                    disableDarkMode();
+                }
+            });
+
+            if (localStorage.getItem('darkMode') === 'enabled') {
+                enableDarkMode();
+            }
+
 
             // --- Load, Render, and Init ---
             loadItinerary();
