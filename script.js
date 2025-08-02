@@ -3,19 +3,6 @@ document.addEventListener('DOMContentLoaded', function () {
     let itinerary = [];
     let routingControl = null;
 
-    // --- Data ---
-    const locations = [
-        { id: 'dehradun', lat: 30.3165, lng: 78.0322, title: 'Dehradun', description: 'The capital city, nestled in the Doon Valley.', image: 'https://placehold.co/400x300/A7C7E7/FFFFFF?text=Dehradun', type: 'city' },
-        { id: 'haridwar', lat: 29.9457, lng: 78.1642, title: 'Haridwar', description: 'A holy city where the River Ganges enters the plains.', image: 'https://placehold.co/400x300/F8C8DC/FFFFFF?text=Haridwar', type: 'pilgrimage' },
-        { id: 'rishikesh', lat: 30.1314, lng: 78.2913, title: 'Rishikesh', description: 'Known as the "Yoga Capital of the World".', image: 'https://placehold.co/400x300/B2D8B2/FFFFFF?text=Rishikesh', type: 'pilgrimage' },
-        { id: 'nainital', lat: 29.3803, lng: 79.4636, title: 'Nainital', description: 'A charming hill station built around Naini Lake.', image: 'https://placehold.co/400x300/E6E6FA/FFFFFF?text=Nainital', type: 'hill-station' },
-        { id: 'mussoorie', lat: 30.4593, lng: 78.0729, title: 'Mussoorie', description: 'The "Queen of the Hills," with stunning Himalayan views.', image: 'https://placehold.co/400x300/FFDAB9/FFFFFF?text=Mussoorie', type: 'hill-station' },
-        { id: 'badrinath', lat: 30.7423, lng: 79.4934, title: 'Badrinath', description: 'A sacred pilgrimage site dedicated to Lord Vishnu.', image: 'https://placehold.co/400x300/C3B1E1/FFFFFF?text=Badrinath', type: 'pilgrimage' },
-        { id: 'kedarnath', lat: 30.6046, lng: 79.0659, title: 'Kedarnath', description: 'Home to the ancient Kedarnath Temple.', image: 'https://placehold.co/400x300/F5DEB3/FFFFFF?text=Kedarnath', type: 'pilgrimage' },
-        { id: 'corbett', lat: 29.5845, lng: 79.4565, title: 'Jim Corbett NP', description: 'India\'s oldest national park, home to the Bengal tiger.', image: 'https://placehold.co/400x300/98FB98/FFFFFF?text=Corbett', type: 'park' },
-        { id: 'valley_of_flowers', lat: 30.6976, lng: 79.5663, title: 'Valley of Flowers', description: 'A vibrant national park with alpine flowers.', image: 'https://placehold.co/400x300/FFB6C1/FFFFFF?text=Valley+of+Flowers', type: 'park' },
-        { id: 'auli', lat: 30.5293, lng: 79.5639, title: 'Auli', description: 'A premier ski destination with panoramic views.', image: 'https://placehold.co/400x300/ADD8E6/FFFFFF?text=Auli', type: 'hill-station' }
-    ];
 
     // --- Map Initialization ---
     const map = L.map('map', { center: [30.0668, 79.0193], zoom: 8, zoomControl: false });
@@ -49,12 +36,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 const item = document.createElement('div');
                 item.className = 'itinerary-item flex items-center justify-between p-3 rounded-lg shadow-sm adding';
                 item.dataset.id = location.id;
-                item.innerHTML = `
-                    <span class="font-semibold">${location.title}</span>
-                    <button class="remove-btn p-1" data-id="${location.id}">
-                        <i data-feather="x" class="w-5 h-5 text-gray-500"></i>
-                    </button>
-                `;
+                const titleSpan = document.createElement('span');
+                titleSpan.className = 'font-semibold';
+                titleSpan.textContent = location.title;
+
+                const removeButton = document.createElement('button');
+                removeButton.className = 'remove-btn p-1';
+                removeButton.dataset.id = location.id;
+                removeButton.setAttribute('aria-label', `Remove ${location.title} from trip`);
+                removeButton.innerHTML = `<i data-feather="x" class="w-5 h-5 text-gray-500"></i>`; // Icon HTML is trusted
+
+                item.appendChild(titleSpan);
+                item.appendChild(removeButton);
+
                 itineraryListEl.appendChild(item);
                 setTimeout(() => item.classList.remove('adding'), 500);
             }
@@ -74,15 +68,22 @@ document.addEventListener('DOMContentLoaded', function () {
             const id = btn.dataset.addId;
             const isAdded = itinerary.includes(id);
 
-            if (btn.tagName === 'BUTTON') {
+            // Handle the text-based button in the map popup
+            if (btn.classList.contains('add-to-trip-btn')) {
                 btn.textContent = isAdded ? 'Added ✔' : 'Add to Trip';
                 btn.disabled = isAdded;
-            } else {
+            }
+            // Handle the icon-based button in the sidebar
+            else if (btn.classList.contains('add-sidebar-btn')) {
                 const icon = isAdded ? 'check-circle' : 'plus-circle';
                 const color = isAdded ? 'text-green-500' : 'text-blue-500';
-                if (!btn.innerHTML.includes(icon)) {
-                     btn.innerHTML = `<i data-feather="${icon}" class="w-6 h-6 ${color}"></i>`;
+                const existingIcon = btn.querySelector('i');
+
+                // Update only if the icon needs to change, to prevent flicker
+                if (!existingIcon || !existingIcon.dataset.feather.includes(icon)) {
+                    btn.innerHTML = `<i data-feather="${icon}" class="w-6 h-6 ${color}"></i>`;
                 }
+                btn.disabled = isAdded;
             }
         });
         feather.replace();
@@ -138,14 +139,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Update active button style
         document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.filter === type);
-             if (btn.dataset.filter === type) {
-                btn.style.backgroundColor = 'var(--accent-sage)';
-                btn.style.color = 'white';
-            } else {
-                btn.style.backgroundColor = 'white';
-                btn.style.color = 'var(--text-indigo)';
-            }
+            const isPressed = btn.dataset.filter === type;
+            btn.classList.toggle('active', isPressed);
+            btn.setAttribute('aria-pressed', isPressed);
         });
     };
 
@@ -157,6 +153,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
     clearItineraryBtn.addEventListener('click', () => {
+        // If a route is displayed, remove it
+        if (routingControl) {
+            map.removeControl(routingControl);
+            routingControl = null;
+            toggleRouteBtn.textContent = 'Show Route'; // Reset button text
+        }
         itinerary = [];
         renderItinerary();
         saveItinerary();
@@ -193,14 +195,32 @@ document.addEventListener('DOMContentLoaded', function () {
     const closeModalBtn = document.querySelector('.modal-close-btn');
 
     const openModal = (location) => {
-        modalBody.innerHTML = `
-            <h2 class="text-3xl font-bold mb-4">${location.title}</h2>
-            <img src="${location.image}" alt="${location.title}" class="w-full h-64 object-cover rounded-lg mb-4">
-            <p class="text-lg">${location.description}</p>
-            <p class="text-sm text-gray-500 mt-4">Type: ${location.type}</p>
-        `;
+        // Clear previous content
+        modalBody.innerHTML = '';
+
+        const title = document.createElement('h2');
+        title.className = 'text-3xl font-bold mb-4';
+        title.textContent = location.title;
+
+        const image = document.createElement('img');
+        image.src = location.image;
+        image.alt = location.title;
+        image.className = 'w-full h-64 object-cover rounded-lg mb-4';
+
+        const description = document.createElement('p');
+        description.className = 'text-lg';
+        description.textContent = location.description;
+
+        const type = document.createElement('p');
+        type.className = 'text-sm text-gray-500 mt-4';
+        type.textContent = `Type: ${location.type}`;
+
+        modalBody.appendChild(title);
+        modalBody.appendChild(image);
+        modalBody.appendChild(description);
+        modalBody.appendChild(type);
+
         modal.classList.add('show');
-        feather.replace();
     };
 
     const closeModal = () => {
@@ -231,18 +251,29 @@ document.addEventListener('DOMContentLoaded', function () {
         item.className = 'location-item p-4 rounded-lg cursor-pointer fade-in flex justify-between items-center';
         item.dataset.id = loc.id;
         item.style.animationDelay = `${index * 50}ms`;
-        item.innerHTML = `
-            <div>
-                <h3 class="font-bold text-lg">${loc.title}</h3>
-                <p class="text-sm text-gray-600">${loc.description}</p>
-            </div>
-            <button class="add-sidebar-btn p-1 subtle-btn" data-add-id="${loc.id}"></button>
-        `;
-        item.querySelector('div').addEventListener('click', () => {
+        const textDiv = document.createElement('div');
+        const titleH3 = document.createElement('h3');
+        titleH3.className = 'font-bold text-lg';
+        titleH3.textContent = loc.title;
+        const descriptionP = document.createElement('p');
+        descriptionP.className = 'text-sm text-gray-600';
+        descriptionP.textContent = loc.description;
+        textDiv.appendChild(titleH3);
+        textDiv.appendChild(descriptionP);
+
+        const addButton = document.createElement('button');
+        addButton.className = 'add-sidebar-btn p-1 subtle-btn';
+        addButton.dataset.addId = loc.id;
+        addButton.setAttribute('aria-label', `Add ${loc.title} to trip`);
+
+        item.appendChild(textDiv);
+        item.appendChild(addButton);
+
+        textDiv.addEventListener('click', () => {
             map.flyTo([loc.lat, loc.lng], 13);
             markers[loc.id].openPopup();
         });
-        item.querySelector('.add-sidebar-btn').addEventListener('click', (e) => {
+        addButton.addEventListener('click', (e) => {
             e.stopPropagation();
             addToItinerary(loc.id);
         });
@@ -251,17 +282,36 @@ document.addEventListener('DOMContentLoaded', function () {
         // Add marker to map
         const customIcon = L.divIcon({ html: `<div class="custom-marker-icon">${icons[loc.type] || icons['city']}</div>`, className: '', iconSize: [28, 28], iconAnchor: [14, 28], popupAnchor: [0, -28] });
         const marker = L.marker([loc.lat, loc.lng], { icon: customIcon }).addTo(map);
-        marker.bindPopup(L.popup({closeButton: false}).setContent(`
-            <div>
-                <img src="${location.image}" alt="${loc.title}" class="popup-image w-full h-32 object-cover">
-                <div class="p-4">
-                    <h3 class="popup-title">${loc.title}</h3>
-                    <p class="text-sm my-2">${loc.description}</p>
-                    <button class="add-to-trip-btn w-full py-2 px-4 rounded-lg font-semibold text-sm subtle-btn" data-add-id="${loc.id}">Add to Trip</button>
-                    <button class="more-info-btn w-full mt-2 py-2 px-4 rounded-lg font-semibold text-sm bg-gray-200 text-gray-700 subtle-btn" data-id="${loc.id}">More Info</button>
-                </div>
-            </div>
-        `));
+
+        const popupContent = document.createElement('div');
+        const img = document.createElement('img');
+        img.src = loc.image;
+        img.alt = loc.title;
+        img.className = 'popup-image w-full h-32 object-cover';
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'p-4';
+        const popupTitle = document.createElement('h3');
+        popupTitle.className = 'popup-title';
+        popupTitle.textContent = loc.title;
+        const popupDescription = document.createElement('p');
+        popupDescription.className = 'text-sm my-2';
+        popupDescription.textContent = loc.description;
+        const popupAddButton = document.createElement('button');
+        popupAddButton.className = 'add-to-trip-btn w-full py-2 px-4 rounded-lg font-semibold text-sm subtle-btn';
+        popupAddButton.dataset.addId = loc.id;
+        popupAddButton.textContent = 'Add to Trip';
+        const moreInfoButton = document.createElement('button');
+        moreInfoButton.className = 'more-info-btn w-full mt-2 py-2 px-4 rounded-lg font-semibold text-sm bg-gray-200 text-gray-700 subtle-btn';
+        moreInfoButton.dataset.id = loc.id;
+        moreInfoButton.textContent = 'More Info';
+        contentDiv.appendChild(popupTitle);
+        contentDiv.appendChild(popupDescription);
+        contentDiv.appendChild(popupAddButton);
+        contentDiv.appendChild(moreInfoButton);
+        popupContent.appendChild(img);
+        popupContent.appendChild(contentDiv);
+
+        marker.bindPopup(L.popup({closeButton: false}).setContent(popupContent));
 
         marker.on('click', () => {
             document.querySelectorAll('.location-item').forEach(el => el.classList.remove('active'));
@@ -281,8 +331,17 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- Mobile Sidebar Toggle ---
     const sidebar = document.getElementById('sidebar');
     const toggleButton = document.getElementById('mobile-toggle');
-    toggleButton.addEventListener('click', (e) => { e.stopPropagation(); sidebar.classList.toggle('open'); });
-    document.getElementById('map').addEventListener('click', () => { if (sidebar.classList.contains('open')) sidebar.classList.remove('open'); });
+    toggleButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = sidebar.classList.toggle('open');
+        toggleButton.setAttribute('aria-expanded', isOpen);
+    });
+    document.getElementById('map').addEventListener('click', () => {
+        if (sidebar.classList.contains('open')) {
+            sidebar.classList.remove('open');
+            toggleButton.setAttribute('aria-expanded', 'false');
+        }
+    });
 
     // --- Load, Render, and Init ---
     loadItinerary();

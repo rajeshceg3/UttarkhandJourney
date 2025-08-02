@@ -53,9 +53,21 @@ h1, h2, h3 { font-family: 'Lora', serif; }
 .location-item.active { background-color: var(--bg-cream-hover); border-left-color: var(--accent-sage); }
 
 /* --- Filter Buttons --- */
-.filter-btn { transition: all 0.2s ease-in-out; border: 1px solid transparent; }
-.filter-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-.filter-btn.active { border-color: var(--accent-terracotta); background-color: var(--accent-sage); color: white; }
+.filter-btn {
+    transition: all 0.2s ease-in-out;
+    border: 1px solid transparent;
+    background-color: white;
+    color: var(--text-indigo);
+}
+.filter-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.filter-btn.active {
+    background-color: var(--accent-sage);
+    color: white;
+    border-color: var(--accent-terracotta);
+}
 
 /* --- Itinerary Panel --- */
 #itinerary-panel h2 { border-top: 1px solid #D1CBB8; padding-top: 1.5rem; margin-top: 1.5rem; }
