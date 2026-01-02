@@ -1,4 +1,4 @@
-const locations = [
+export const locations = [
     { id: 'dehradun', lat: 30.3165, lng: 78.0322, title: 'Dehradun', description: 'The capital city, nestled in the Doon Valley.', image: 'https://placehold.co/400x300/A7C7E7/FFFFFF?text=Dehradun', type: 'city' },
     { id: 'haridwar', lat: 29.9457, lng: 78.1642, title: 'Haridwar', description: 'A holy city where the River Ganges enters the plains.', image: 'https://placehold.co/400x300/F8C8DC/FFFFFF?text=Haridwar', type: 'pilgrimage' },
     { id: 'rishikesh', lat: 30.1314, lng: 78.2913, title: 'Rishikesh', description: 'Known as the "Yoga Capital of the World".', image: 'https://placehold.co/400x300/B2D8B2/FFFFFF?text=Rishikesh', type: 'pilgrimage' },

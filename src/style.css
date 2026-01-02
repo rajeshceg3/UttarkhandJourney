@@ -1,0 +1,205 @@
+@import "tailwindcss";
+
+/* --- Base & Typography --- */
+:root {
+    --bg-soft-white: #FCFBF9;
+    --bg-cream: #F4F1DE;
+    --bg-cream-hover: #EAE6D4;
+    --text-indigo: #3D405B;
+    --accent-terracotta: #D98C7A;
+    --accent-sage: #A3B18A;
+}
+
+@theme {
+    --color-bg-soft-white: #FCFBF9;
+    --color-bg-cream: #F4F1DE;
+    --color-bg-cream-hover: #EAE6D4;
+    --color-text-indigo: #3D405B;
+    --color-accent-terracotta: #D98C7A;
+    --color-accent-sage: #A3B18A;
+
+    --font-serif: 'Lora', serif;
+    --font-sans: 'Inter', sans-serif;
+}
+
+body {
+    @apply font-sans bg-bg-soft-white text-text-indigo antialiased;
+}
+
+h1, h2, h3 {
+    @apply font-serif;
+}
+
+/* --- Layout --- */
+.main-layout {
+    @apply grid h-screen;
+    grid-template-columns: 350px 1fr;
+}
+
+#map {
+    @apply h-full w-full bg-gray-200;
+}
+
+/* --- Animations & Transitions --- */
+.fade-in {
+    animation: fadeIn 1s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.subtle-btn {
+    @apply transition-all duration-200 ease-in-out;
+}
+.subtle-btn:hover {
+    @apply transform scale-105;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideOut {
+    from { opacity: 1; transform: translateX(0); }
+    to { opacity: 0; transform: translateX(20px); }
+}
+
+@keyframes icon-pop {
+    0% { transform: scale(0); }
+    70% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.itinerary-item.adding {
+    animation: slideIn 0.3s ease forwards;
+}
+
+.itinerary-item.removing {
+    animation: slideOut 0.3s ease forwards;
+}
+
+.add-sidebar-btn .feather-check-circle {
+    animation: icon-pop 0.3s ease-in-out;
+}
+
+/* --- Sidebar & Location List --- */
+.sidebar {
+    @apply bg-bg-cream p-8 overflow-y-auto transition-transform duration-300 ease-in-out;
+}
+
+.location-item {
+    @apply transition-all duration-200 ease-in-out border-l-4 border-transparent;
+}
+
+.location-item:hover {
+    @apply bg-bg-cream-hover border-accent-terracotta transform translate-x-1;
+}
+
+.location-item.active {
+    @apply bg-bg-cream-hover border-accent-sage;
+}
+
+/* --- Filter Buttons --- */
+.filter-btn {
+    @apply transition-all duration-200 ease-in-out border border-transparent bg-white text-text-indigo;
+}
+
+.filter-btn:hover {
+    @apply transform -translate-y-0.5 shadow-lg;
+}
+
+.filter-btn.active {
+    @apply bg-accent-sage text-white border-accent-terracotta;
+}
+
+/* --- Itinerary Panel --- */
+#itinerary-panel h2 {
+    @apply border-t border-[#D1CBB8] pt-6 mt-6;
+}
+
+.itinerary-item {
+    @apply bg-white animate-[fadeIn_0.5s_ease];
+}
+
+.itinerary-item .remove-btn:hover svg {
+    @apply text-red-600;
+}
+
+/* --- Custom Marker & Popup --- */
+.custom-marker-icon {
+    @apply transition-transform duration-200 ease-in-out;
+}
+
+.custom-marker-icon:hover {
+    @apply transform scale-125;
+}
+
+.leaflet-popup-content-wrapper {
+    @apply bg-bg-soft-white text-text-indigo rounded-lg shadow-xl;
+}
+
+.leaflet-popup-content {
+    margin: 0;
+    width: 250px !important;
+}
+
+.leaflet-popup-tip-container {
+    display: none;
+}
+
+.popup-title {
+    @apply font-serif text-xl font-bold;
+}
+
+.popup-image {
+    @apply rounded-t-lg;
+}
+
+.add-to-trip-btn {
+    @apply bg-accent-sage text-white;
+}
+
+.add-to-trip-btn:disabled {
+    @apply bg-[#b0be9a] cursor-not-allowed;
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 768px) {
+    .main-layout {
+        grid-template-columns: 1fr;
+    }
+    .sidebar {
+        @apply absolute top-0 left-0 bottom-0 w-[300px] z-[1001] -translate-x-full shadow-2xl;
+    }
+    .sidebar.open {
+        @apply translate-x-0;
+    }
+    .mobile-toggle {
+        display: block;
+    }
+}
+
+/* --- Location Details Modal --- */
+#location-modal {
+    @apply fixed inset-0 bg-black/50 z-[1050] hidden items-center justify-center;
+}
+
+#location-modal.show {
+    @apply flex;
+}
+
+.modal-content {
+    @apply bg-white p-8 rounded-xl w-[90%] max-w-[500px] shadow-2xl relative;
+}
+
+.modal-close-btn {
+    @apply absolute top-4 right-4 bg-none border-none cursor-pointer;
+}
+
+/* Leaflet Routing Machine overrides if necessary */
+.leaflet-routing-container {
+    @apply font-sans;
+}
