@@ -4,7 +4,8 @@ const STORAGE_KEY = 'uttarakhand_itinerary';
 export const loadItinerary = () => {
     try {
         const stored = localStorage.getItem(STORAGE_KEY);
-        return stored ? JSON.parse(stored) : [];
+        const parsed = stored ? JSON.parse(stored) : [];
+        return Array.isArray(parsed) ? parsed : [];
     } catch (e) {
         console.error('Failed to load itinerary', e);
         return [];
