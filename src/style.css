@@ -1,0 +1,132 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', sans-serif;
+  --font-serif: 'Lora', serif;
+
+  --color-bg-soft-white: #FCFBF9;
+  --color-bg-cream: #F4F1DE;
+  --color-bg-cream-hover: #EAE6D4;
+  --color-text-indigo: #3D405B;
+  --color-accent-terracotta: #D98C7A;
+  --color-accent-sage: #A3B18A;
+}
+
+/* Base Styles */
+body {
+    background-color: var(--color-bg-soft-white);
+    color: var(--color-text-indigo);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3 {
+    font-family: var(--font-serif);
+}
+
+/* Map */
+#map {
+    height: 100%;
+    width: 100%;
+    background-color: #E0E5EC;
+    z-index: 1;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideOut {
+    from { opacity: 1; transform: translateX(0); }
+    to { opacity: 0; transform: translateX(20px); }
+}
+
+@keyframes icon-pop {
+    0% { transform: scale(0); }
+    70% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.fade-in {
+    animation: fadeIn 1s ease-in-out forwards;
+}
+
+.subtle-btn {
+    transition: all 0.2s ease-in-out;
+}
+
+.subtle-btn:hover {
+    transform: scale(1.05);
+}
+
+/* Sidebar */
+.sidebar {
+    background-color: var(--color-bg-cream);
+    transition: transform 0.3s ease-in-out;
+}
+
+.location-item {
+    transition: all 0.2s ease-in-out;
+    border-left: 4px solid transparent;
+}
+
+.location-item:hover {
+    background-color: var(--color-bg-cream-hover);
+    border-left-color: var(--color-accent-terracotta);
+    transform: translateX(5px);
+}
+
+.location-item.active {
+    background-color: var(--color-bg-cream-hover);
+    border-left-color: var(--color-accent-sage);
+}
+
+/* Filters */
+.filter-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.filter-btn.active {
+    background-color: var(--color-accent-sage);
+    color: white;
+    border-color: var(--color-accent-terracotta);
+}
+
+/* Leaflet Overrides */
+.leaflet-popup-content-wrapper {
+    background-color: var(--color-bg-soft-white);
+    color: var(--color-text-indigo);
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.leaflet-popup-content {
+    margin: 0;
+    width: 250px !important;
+}
+
+.leaflet-popup-tip-container {
+    display: none;
+}
+
+/* Custom Marker */
+.custom-marker-icon {
+    transition: transform 0.2s ease-in-out;
+}
+
+.custom-marker-icon:hover {
+    transform: scale(1.2);
+}
+
+/* Modal */
+#location-modal {
+    background-color: rgba(0, 0, 0, 0.5);
+}
