@@ -96,8 +96,9 @@ function getIconName(type) {
 
 function createPopupContent(loc) {
     const div = document.createElement('div');
+    // Security Note: Data from internal 'locations.js' is trusted.
     div.innerHTML = `
-        <img src="${loc.image}" alt="${loc.title}" class="popup-image w-full h-32 object-cover rounded-t-lg">
+        <img src="${loc.image}" alt="${loc.title}" class="popup-image w-full h-32 object-cover rounded-t-lg" loading="lazy">
         <div class="p-4">
             <h3 class="popup-title font-serif text-lg font-bold">${loc.title}</h3>
             <p class="text-sm my-2 text-gray-600">${loc.description}</p>
