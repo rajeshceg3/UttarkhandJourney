@@ -1,7 +1,7 @@
 import './style.css';
 import { initMap, flyToLocation, openMarkerPopup, updateMapRoute } from './components/map.js';
-import { renderSidebarList, renderItineraryList, updateActiveLocation, toggleSidebar } from './components/sidebar.js';
-import { showModal, closeModal } from './components/modal.js';
+import { renderSidebarList, renderFilters, renderItineraryList, updateActiveLocation, toggleSidebar } from './components/sidebar.js';
+import { showModal } from './components/modal.js';
 import { loadItinerary, saveItinerary } from './utils/storage.js';
 import Toastify from 'toastify-js';
 import "toastify-js/src/toastify.css";
@@ -12,10 +12,15 @@ let itinerary = loadItinerary();
 const init = () => {
     // DOM Elements
     const sidebarListEl = document.getElementById('location-list');
+    const filterContainerEl = document.getElementById('filter-container');
     const itineraryListEl = document.getElementById('itinerary-list');
     const mobileToggleBtn = document.getElementById('mobile-toggle');
 
     // Logic
+    const handleFilterChange = (type) => {
+        renderSidebarList(sidebarListEl, handleLocationClick, handleAddToTrip, type);
+    };
+
     const handleAddToTrip = (id) => {
         if (!itinerary.includes(id)) {
             itinerary.push(id);
@@ -79,6 +84,7 @@ const init = () => {
     );
 
     // Init Sidebar
+    renderFilters(filterContainerEl, handleFilterChange);
     renderSidebarList(sidebarListEl, handleLocationClick, handleAddToTrip);
     updateUI();
 

@@ -1,8 +1,8 @@
 {
-  "name": "app",
+  "name": "uttarakhand-journey",
   "version": "1.0.0",
-  "description": "",
-  "main": "locations.js",
+  "description": "A travel planner web application for the Uttarakhand region, built with Vanilla JavaScript, Leaflet, and Tailwind CSS.",
+  "main": "src/main.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -14,8 +14,14 @@
     "type": "git",
     "url": "git+https://github.com/rajeshceg3/UttarkhandJourney.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "travel",
+    "uttarakhand",
+    "planner",
+    "leaflet",
+    "map"
+  ],
+  "author": "Rajesh",
   "license": "ISC",
   "type": "module",
   "bugs": {
@@ -29,9 +35,11 @@
     "toastify-js": "^1.12.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.2",
     "@tailwindcss/postcss": "^4.1.18",
     "autoprefixer": "^10.4.23",
     "eslint": "^9.39.2",
+    "globals": "^17.0.0",
     "jsdom": "^27.4.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.18",

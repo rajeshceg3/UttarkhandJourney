@@ -1,9 +1,38 @@
 import feather from 'feather-icons';
 import { locations } from '../data/locations.js';
 
-export const renderSidebarList = (container, onLocClick, onAddClick) => {
+export const renderFilters = (container, onFilterChange) => {
+    const types = ['all', ...new Set(locations.map(l => l.type))];
+
+    container.innerHTML = types.map(type => `
+        <button class="filter-btn px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 capitalize transition-all border border-transparent ${type === 'all' ? 'active' : ''}" data-type="${type}" aria-label="Filter by ${type}">
+            ${type.replace('-', ' ')}
+        </button>
+    `).join('');
+
+    container.addEventListener('click', (e) => {
+        const btn = e.target.closest('.filter-btn');
+        if (btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            onFilterChange(btn.dataset.type);
+        }
+    });
+};
+
+export const renderSidebarList = (container, onLocClick, onAddClick, filterType = 'all') => {
     container.innerHTML = '';
-    locations.forEach((loc, index) => {
+
+    const filteredLocations = filterType === 'all'
+        ? locations
+        : locations.filter(loc => loc.type === filterType);
+
+    if (filteredLocations.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-center text-sm py-4">No locations found.</p>';
+        return;
+    }
+
+    filteredLocations.forEach((loc, index) => {
         const item = document.createElement('div');
         item.className = 'location-item p-4 rounded-lg cursor-pointer fade-in flex justify-between items-center bg-white shadow-sm mb-2';
         item.dataset.id = loc.id;
