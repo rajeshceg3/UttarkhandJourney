@@ -1,8 +1,9 @@
 import './style.css';
-import { initMap, flyToLocation, openMarkerPopup, updateMapRoute } from './components/map.js';
+import { initMap } from './components/map.js';
 import { renderSidebarList, renderFilters, renderItineraryList, updateActiveLocation, toggleSidebar } from './components/sidebar.js';
 import { showModal } from './components/modal.js';
 import { loadItinerary, saveItinerary } from './utils/storage.js';
+import { locations } from './data/locations.js';
 import Toastify from 'toastify-js';
 import "toastify-js/src/toastify.css";
 import feather from 'feather-icons';
@@ -15,10 +16,18 @@ const init = () => {
     const filterContainerEl = document.getElementById('filter-container');
     const itineraryListEl = document.getElementById('itinerary-list');
     const mobileToggleBtn = document.getElementById('mobile-toggle');
+    const sidebarEl = document.getElementById('sidebar');
+
+    if (!sidebarListEl || !filterContainerEl || !itineraryListEl) {
+        console.error("Critical DOM elements missing");
+        return;
+    }
+
+    let mapControls = null;
 
     // Logic
     const handleFilterChange = (type) => {
-        renderSidebarList(sidebarListEl, handleLocationClick, handleAddToTrip, type);
+        renderSidebarList(sidebarListEl, locations, handleLocationClick, handleAddToTrip, type);
     };
 
     const handleAddToTrip = (id) => {
@@ -57,12 +66,27 @@ const init = () => {
         }).showToast();
     };
 
+    const handleClearItinerary = () => {
+        itinerary = [];
+        saveItinerary(itinerary);
+        updateUI();
+        Toastify({
+            text: "Itinerary cleared.",
+            duration: 3000,
+            gravity: "bottom",
+            position: "right",
+            backgroundColor: "#D98C7A",
+        }).showToast();
+    };
+
     const handleLocationClick = (loc) => {
-        flyToLocation(loc.lat, loc.lng);
-        openMarkerPopup(loc.id);
-        updateActiveLocation(loc.id);
-        if (window.innerWidth < 768) {
-            toggleSidebar(false);
+        if (mapControls) {
+            mapControls.flyToLocation(loc.lat, loc.lng);
+            mapControls.openMarkerPopup(loc.id);
+        }
+        updateActiveLocation(sidebarListEl, loc.id);
+        if (window.innerWidth < 768 && sidebarEl) {
+            toggleSidebar(sidebarEl, false);
         }
     };
 
@@ -72,28 +96,42 @@ const init = () => {
     };
 
     const updateUI = () => {
-        renderItineraryList(itineraryListEl, itinerary, handleRemoveFromTrip);
-        updateMapRoute(itinerary);
+        renderItineraryList(itineraryListEl, locations, itinerary, handleRemoveFromTrip, handleClearItinerary);
+        if (mapControls) {
+            mapControls.updateMapRoute(itinerary);
+        }
     };
 
     // Init Map
-    initMap('map',
-        (id) => updateActiveLocation(id),
-        handleAddToTrip,
-        handleMoreInfo
-    );
+    try {
+        mapControls = initMap('map',
+            locations,
+            (id) => updateActiveLocation(sidebarListEl, id),
+            handleAddToTrip,
+            handleMoreInfo
+        );
+    } catch (error) {
+        console.error("Failed to initialize map:", error);
+    }
 
     // Init Sidebar
-    renderFilters(filterContainerEl, handleFilterChange);
-    renderSidebarList(sidebarListEl, handleLocationClick, handleAddToTrip);
-    updateUI();
+    try {
+        renderFilters(filterContainerEl, locations, handleFilterChange);
+        renderSidebarList(sidebarListEl, locations, handleLocationClick, handleAddToTrip);
+        updateUI();
+    } catch (error) {
+        console.error("Failed to initialize sidebar:", error);
+    }
 
     // Event Listeners
-    mobileToggleBtn.addEventListener('click', () => {
-        const sidebar = document.getElementById('sidebar');
-        const isHidden = sidebar.classList.contains('-translate-x-full');
-        toggleSidebar(isHidden);
-    });
+    if (mobileToggleBtn) {
+        mobileToggleBtn.addEventListener('click', () => {
+            if (sidebarEl) {
+                const isHidden = sidebarEl.classList.contains('-translate-x-full');
+                toggleSidebar(sidebarEl, isHidden);
+            }
+        });
+    }
 
     feather.replace();
 };

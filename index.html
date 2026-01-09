@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.tile.openstreetmap.org https://placehold.co; connect-src 'self'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.tile.openstreetmap.org https://placehold.co; connect-src 'self'">
     <title>Uttarakhand Journey - Plan Your Trip</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,12 +28,12 @@
                 <div id="location-list" class="space-y-4">
                     <!-- Locations populated by JS -->
                 </div>
+            </div>
 
-                <div id="itinerary-panel" class="mt-8">
-                    <h2 class="text-xl font-serif font-bold text-text-indigo mb-4 border-t border-gray-200 pt-4">Your Itinerary</h2>
-                    <div id="itinerary-list" class="space-y-2">
-                        <!-- Itinerary items populated by JS -->
-                    </div>
+            <div id="itinerary-panel" class="border-t border-gray-200 bg-gray-50 p-4 shadow-inner max-h-64 overflow-y-auto flex-shrink-0">
+                <h2 class="text-xl font-serif font-bold text-text-indigo mb-4">Your Itinerary</h2>
+                <div id="itinerary-list" class="space-y-2">
+                    <!-- Itinerary items populated by JS -->
                 </div>
             </div>
             
