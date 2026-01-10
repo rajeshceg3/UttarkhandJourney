@@ -2,18 +2,77 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-routing-machine';
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
-import { locations } from '../data/locations.js';
 
-let map;
-let markers = {};
-let routingControl;
+export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMoreInfo) => {
+    const mapElement = document.getElementById(elementId);
+    if (!mapElement) {
+        console.error(`Map element with id "${elementId}" not found.`);
+        return null;
+    }
 
-export const initMap = (elementId, onMarkerClick, onAddToTrip, onMoreInfo) => {
-    map = L.map(elementId).setView([30.0668, 79.0193], 8); // Centered on Uttarakhand
+    const map = L.map(elementId).setView([30.0668, 79.0193], 8); // Centered on Uttarakhand
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
+
+    const markers = {};
+    let routingControl = null;
+
+    // Helper: Create Popup Content
+    const createPopupContent = (loc) => {
+        const div = document.createElement('div');
+        div.className = "popup-content";
+
+        const img = document.createElement('img');
+        img.src = loc.image;
+        img.alt = loc.title;
+        img.className = "popup-image w-full h-32 object-cover rounded-t-lg";
+        img.loading = "lazy";
+        div.appendChild(img);
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = "p-4";
+
+        const title = document.createElement('h3');
+        title.className = "popup-title font-serif text-lg font-bold";
+        title.textContent = loc.title;
+        contentDiv.appendChild(title);
+
+        const desc = document.createElement('p');
+        desc.className = "text-sm my-2 text-gray-600";
+        desc.textContent = loc.description;
+        contentDiv.appendChild(desc);
+
+        const addBtn = document.createElement('button');
+        addBtn.className = "add-to-trip-btn w-full py-2 px-4 rounded-lg font-semibold text-sm subtle-btn bg-accent-sage text-white mb-2";
+        addBtn.textContent = "Add to Trip";
+        addBtn.setAttribute('data-add-id', loc.id);
+        addBtn.onclick = () => onAddToTrip(loc.id);
+        contentDiv.appendChild(addBtn);
+
+        const infoBtn = document.createElement('button');
+        infoBtn.className = "more-info-btn w-full py-2 px-4 rounded-lg font-semibold text-sm bg-gray-200 text-gray-700 subtle-btn";
+        infoBtn.textContent = "More Info";
+        infoBtn.setAttribute('data-info-id', loc.id);
+        infoBtn.onclick = () => onMoreInfo(loc);
+        contentDiv.appendChild(infoBtn);
+
+        div.appendChild(contentDiv);
+
+        return div;
+    };
+
+    // Helper: Get Icon
+    const getIconName = (type) => {
+        const icons = {
+            'city': 'map-pin',
+            'pilgrimage': 'sunrise',
+            'hill-station': 'cloud',
+            'park': 'compass'
+        };
+        return icons[type] || 'map-pin';
+    };
 
     // Add Markers
     locations.forEach(loc => {
@@ -26,89 +85,59 @@ export const initMap = (elementId, onMarkerClick, onAddToTrip, onMoreInfo) => {
         });
 
         const marker = L.marker([loc.lat, loc.lng], { icon: customIcon }).addTo(map);
-
-        const popupContent = createPopupContent(loc);
-        marker.bindPopup(L.popup({ closeButton: false }).setContent(popupContent));
+        marker.bindPopup(L.popup({ closeButton: false }).setContent(createPopupContent(loc)));
 
         marker.on('click', () => {
             onMarkerClick(loc.id);
         });
 
-        marker.getPopup().on('add', () => {
-             // Re-bind events inside popup as DOM is recreated
-             const addBtn = document.querySelector(`.leaflet-popup-content button[data-add-id="${loc.id}"]`);
-             if (addBtn) addBtn.addEventListener('click', () => onAddToTrip(loc.id));
-
-             const infoBtn = document.querySelector(`.leaflet-popup-content button[data-info-id="${loc.id}"]`);
-             if (infoBtn) infoBtn.addEventListener('click', () => onMoreInfo(loc));
-        });
-
         markers[loc.id] = marker;
     });
 
-    return map;
-};
-
-export const flyToLocation = (lat, lng) => {
-    map.flyTo([lat, lng], 13);
-};
-
-export const openMarkerPopup = (id) => {
-    if (markers[id]) {
-        markers[id].openPopup();
-    }
-};
-
-export const updateMapRoute = (itineraryIds) => {
-    if (routingControl) {
-        map.removeControl(routingControl);
-        routingControl = null;
-    }
-
-    if (itineraryIds.length < 2) return;
-
-    const waypoints = itineraryIds
-        .map(id => locations.find(l => l.id === id))
-        .filter(Boolean)
-        .map(loc => L.latLng(loc.lat, loc.lng));
-
-    routingControl = L.Routing.control({
-        waypoints: waypoints,
-        routeWhileDragging: false,
-        showAlternatives: false,
-        fitSelectedRoutes: true,
-        lineOptions: {
-            styles: [{ color: '#A3B18A', opacity: 0.8, weight: 6 }]
-        },
-        createMarker: function() { return null; } // Don't create extra markers
-    }).addTo(map);
-};
-
-function getIconName(type) {
-    const icons = {
-        'city': 'map-pin',
-        'pilgrimage': 'sunrise', // closest to religious/temple
-        'hill-station': 'cloud',
-        'park': 'compass'
+    // Public Methods
+    const flyToLocation = (lat, lng) => {
+        if (map) {
+            map.flyTo([lat, lng], 13);
+        }
     };
-    return icons[type] || 'map-pin';
-}
 
-function createPopupContent(loc) {
-    const div = document.createElement('div');
-    // Security Note: Data from internal 'locations.js' is trusted.
-    div.innerHTML = `
-        <img src="${loc.image}" alt="${loc.title}" class="popup-image w-full h-32 object-cover rounded-t-lg" loading="lazy">
-        <div class="p-4">
-            <h3 class="popup-title font-serif text-lg font-bold">${loc.title}</h3>
-            <p class="text-sm my-2 text-gray-600">${loc.description}</p>
-            <button class="add-to-trip-btn w-full py-2 px-4 rounded-lg font-semibold text-sm subtle-btn bg-accent-sage text-white mb-2" data-add-id="${loc.id}">
-                Add to Trip
-            </button>
-            <button class="more-info-btn w-full py-2 px-4 rounded-lg font-semibold text-sm bg-gray-200 text-gray-700 subtle-btn" data-info-id="${loc.id}">
-                More Info
-            </button>
-        </div>
-    `;
-    return div;
-}
+    const openMarkerPopup = (id) => {
+        if (markers[id]) {
+            markers[id].openPopup();
+        }
+    };
+
+    const updateMapRoute = (itineraryIds) => {
+        if (!map) return;
+
+        if (routingControl) {
+            map.removeControl(routingControl);
+            routingControl = null;
+        }
+
+        if (!itineraryIds || itineraryIds.length < 2) return;
+
+        const waypoints = itineraryIds
+            .map(id => locations.find(l => l.id === id))
+            .filter(Boolean)
+            .map(loc => L.latLng(loc.lat, loc.lng));
+
+        routingControl = L.Routing.control({
+            waypoints: waypoints,
+            routeWhileDragging: false,
+            showAlternatives: false,
+            fitSelectedRoutes: true,
+            lineOptions: {
+                styles: [{ color: '#A3B18A', opacity: 0.8, weight: 6 }]
+            },
+            createMarker: function() { return null; }
+        }).addTo(map);
+    };
+
+    return {
+        flyToLocation,
+        openMarkerPopup,
+        updateMapRoute,
+        mapInstance: map // Expose raw map if needed, mainly for debugging or extensions
+    };
+};
