@@ -9,6 +9,9 @@ vi.mock('feather-icons', () => ({
     },
 }));
 
+// Mock confirm
+global.confirm = vi.fn(() => true);
+
 const mockLocations = [
     { id: 1, title: 'Loc 1', type: 'temple', description: 'Desc 1', lat: 10, lng: 10 },
     { id: 2, title: 'Loc 2', type: 'adventure', description: 'Desc 2', lat: 20, lng: 20 },
@@ -19,6 +22,7 @@ describe('Sidebar Component', () => {
 
     beforeEach(() => {
         container = document.createElement('div');
+        vi.clearAllMocks();
     });
 
     describe('renderFilters', () => {
@@ -46,16 +50,17 @@ describe('Sidebar Component', () => {
         it('should render locations', () => {
             const onLocClick = vi.fn();
             const onAddClick = vi.fn();
-            renderSidebarList(container, mockLocations, onLocClick, onAddClick);
+            // Provide empty itinerary array
+            renderSidebarList(container, mockLocations, [], onLocClick, onAddClick);
 
             const items = container.querySelectorAll('.location-item');
             expect(items.length).toBe(mockLocations.length);
         });
 
         it('should render empty state if no locations match', () => {
-             const onLocClick = vi.fn();
+            const onLocClick = vi.fn();
             const onAddClick = vi.fn();
-            renderSidebarList(container, mockLocations, onLocClick, onAddClick, 'non-existent-type');
+            renderSidebarList(container, mockLocations, [], onLocClick, onAddClick, 'non-existent-type');
 
             expect(container.textContent).toContain('No locations found');
         });
@@ -63,21 +68,32 @@ describe('Sidebar Component', () => {
         it('should handle location click', () => {
             const onLocClick = vi.fn();
             const onAddClick = vi.fn();
-            renderSidebarList(container, mockLocations, onLocClick, onAddClick);
+            renderSidebarList(container, mockLocations, [], onLocClick, onAddClick);
 
             const item = container.querySelector('.location-item');
             item.querySelector('div').click(); // click the text part
             expect(onLocClick).toHaveBeenCalledWith(mockLocations[0]);
         });
 
-         it('should handle add button click', () => {
+        it('should handle add button click', () => {
             const onLocClick = vi.fn();
             const onAddClick = vi.fn();
-            renderSidebarList(container, mockLocations, onLocClick, onAddClick);
+            renderSidebarList(container, mockLocations, [], onLocClick, onAddClick);
 
             const btn = container.querySelector('.add-sidebar-btn');
             btn.click();
             expect(onAddClick).toHaveBeenCalledWith(mockLocations[0].id);
+        });
+
+        it('should show added state for items in itinerary', () => {
+            const onLocClick = vi.fn();
+            const onAddClick = vi.fn();
+            const itinerary = [mockLocations[0].id];
+            renderSidebarList(container, mockLocations, itinerary, onLocClick, onAddClick);
+
+            const btn = container.querySelector(`.location-item[data-id="${mockLocations[0].id}"] .add-sidebar-btn`);
+            expect(btn.disabled).toBe(true);
+            expect(btn.ariaLabel).toContain('added');
         });
     });
 
@@ -100,7 +116,10 @@ describe('Sidebar Component', () => {
 
              const clearBtn = container.querySelector('button.text-red-500');
              expect(clearBtn).not.toBeNull();
+
+             // global.confirm mock returns true by default
              clearBtn.click();
+             expect(global.confirm).toHaveBeenCalled();
              expect(onClearClick).toHaveBeenCalled();
         });
 
