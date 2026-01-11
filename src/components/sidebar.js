@@ -25,7 +25,7 @@ export const renderFilters = (container, locations, onFilterChange) => {
     });
 };
 
-export const renderSidebarList = (container, locations, onLocClick, onAddClick, filterType = 'all') => {
+export const renderSidebarList = (container, locations, itineraryIds, onLocClick, onAddClick, filterType = 'all') => {
     if (!container) return;
     container.innerHTML = '';
 
@@ -75,25 +75,35 @@ export const renderSidebarList = (container, locations, onLocClick, onAddClick, 
 
         item.appendChild(contentDiv);
 
-        // Add Button
+        // Add Button Logic
+        const isAdded = itineraryIds.includes(loc.id);
         const addBtn = document.createElement('button');
-        addBtn.className = 'add-sidebar-btn p-2 rounded-full hover:bg-gray-100 transition-colors';
+        addBtn.className = `add-sidebar-btn p-2 rounded-full transition-colors ${isAdded ? 'bg-accent-sage/20 text-accent-sage cursor-default' : 'hover:bg-gray-100 text-gray-400 hover:text-accent-sage'}`;
         addBtn.dataset.addId = loc.id;
-        addBtn.ariaLabel = `Add ${loc.title} to trip`;
+        addBtn.ariaLabel = isAdded ? `${loc.title} added to trip` : `Add ${loc.title} to trip`;
+        addBtn.disabled = isAdded; // Disable if already added
 
         const icon = document.createElement('i');
-        icon.dataset.feather = "plus-circle";
-        icon.className = "text-accent-sage";
+        icon.dataset.feather = isAdded ? "check" : "plus-circle";
+        if (isAdded) {
+             // icon.className = "text-accent-sage"; // Handled by parent class
+        } else {
+             icon.className = "text-accent-sage";
+        }
         addBtn.appendChild(icon);
 
         item.appendChild(addBtn);
 
         // Events
         contentDiv.addEventListener('click', () => onLocClick(loc));
-        addBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            onAddClick(loc.id);
-        });
+        if (!isAdded) {
+            addBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                onAddClick(loc.id);
+            });
+        } else {
+             addBtn.addEventListener('click', (e) => e.stopPropagation());
+        }
 
         container.appendChild(item);
     });
@@ -131,7 +141,11 @@ export const renderItineraryList = (container, locations, itineraryIds, onRemove
         const clearBtn = document.createElement('button');
         clearBtn.className = "text-xs text-red-500 hover:text-red-700 underline font-medium";
         clearBtn.textContent = "Clear All";
-        clearBtn.onclick = onClearClick;
+        clearBtn.onclick = () => {
+            if (confirm("Are you sure you want to clear your entire itinerary? This action cannot be undone.")) {
+                onClearClick();
+            }
+        };
         headerDiv.appendChild(clearBtn);
 
         container.appendChild(headerDiv);

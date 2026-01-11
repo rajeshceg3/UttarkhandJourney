@@ -9,6 +9,7 @@ import "toastify-js/src/toastify.css";
 import feather from 'feather-icons';
 
 let itinerary = loadItinerary();
+let currentFilter = 'all';
 
 const init = () => {
     // DOM Elements
@@ -27,7 +28,8 @@ const init = () => {
 
     // Logic
     const handleFilterChange = (type) => {
-        renderSidebarList(sidebarListEl, locations, handleLocationClick, handleAddToTrip, type);
+        currentFilter = type;
+        renderSidebarList(sidebarListEl, locations, itinerary, handleLocationClick, handleAddToTrip, type);
     };
 
     const handleAddToTrip = (id) => {
@@ -95,11 +97,15 @@ const init = () => {
         feather.replace();
     };
 
+    const getItinerary = () => itinerary;
+
     const updateUI = () => {
         renderItineraryList(itineraryListEl, locations, itinerary, handleRemoveFromTrip, handleClearItinerary);
+        renderSidebarList(sidebarListEl, locations, itinerary, handleLocationClick, handleAddToTrip, currentFilter);
         if (mapControls) {
             mapControls.updateMapRoute(itinerary);
         }
+        feather.replace();
     };
 
     // Init Map
@@ -108,7 +114,8 @@ const init = () => {
             locations,
             (id) => updateActiveLocation(sidebarListEl, id),
             handleAddToTrip,
-            handleMoreInfo
+            handleMoreInfo,
+            getItinerary
         );
     } catch (error) {
         console.error("Failed to initialize map:", error);
@@ -117,8 +124,11 @@ const init = () => {
     // Init Sidebar
     try {
         renderFilters(filterContainerEl, locations, handleFilterChange);
-        renderSidebarList(sidebarListEl, locations, handleLocationClick, handleAddToTrip);
-        updateUI();
+        renderSidebarList(sidebarListEl, locations, itinerary, handleLocationClick, handleAddToTrip, currentFilter);
+        renderItineraryList(itineraryListEl, locations, itinerary, handleRemoveFromTrip, handleClearItinerary);
+        if (mapControls) {
+            mapControls.updateMapRoute(itinerary);
+        }
     } catch (error) {
         console.error("Failed to initialize sidebar:", error);
     }

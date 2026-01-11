@@ -3,7 +3,7 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet-routing-machine';
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 
-export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMoreInfo) => {
+export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMoreInfo, getItinerary) => {
     const mapElement = document.getElementById(elementId);
     if (!mapElement) {
         console.error(`Map element with id "${elementId}" not found.`);
@@ -44,11 +44,21 @@ export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMore
         desc.textContent = loc.description;
         contentDiv.appendChild(desc);
 
+        // Check itinerary status
+        const currentItinerary = getItinerary ? getItinerary() : [];
+        const isAdded = currentItinerary.includes(loc.id);
+
         const addBtn = document.createElement('button');
-        addBtn.className = "add-to-trip-btn w-full py-2 px-4 rounded-lg font-semibold text-sm subtle-btn bg-accent-sage text-white mb-2";
-        addBtn.textContent = "Add to Trip";
-        addBtn.setAttribute('data-add-id', loc.id);
-        addBtn.onclick = () => onAddToTrip(loc.id);
+        if (isAdded) {
+            addBtn.className = "add-to-trip-btn w-full py-2 px-4 rounded-lg font-semibold text-sm subtle-btn bg-gray-300 text-gray-600 mb-2 cursor-default";
+            addBtn.textContent = "Added to Trip";
+            addBtn.disabled = true;
+        } else {
+            addBtn.className = "add-to-trip-btn w-full py-2 px-4 rounded-lg font-semibold text-sm subtle-btn bg-accent-sage text-white mb-2";
+            addBtn.textContent = "Add to Trip";
+            addBtn.setAttribute('data-add-id', loc.id);
+            addBtn.onclick = () => onAddToTrip(loc.id);
+        }
         contentDiv.appendChild(addBtn);
 
         const infoBtn = document.createElement('button');
@@ -76,8 +86,18 @@ export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMore
 
     // Add Markers
     locations.forEach(loc => {
+        // Safe construction of icon HTML
+        const iconName = getIconName(loc.type);
+
+        const iconWrapper = document.createElement('div');
+        iconWrapper.className = "custom-marker-icon flex justify-center items-center text-accent-terracotta";
+
+        const iconElement = document.createElement('i');
+        iconElement.setAttribute('data-feather', iconName);
+        iconWrapper.appendChild(iconElement);
+
         const customIcon = L.divIcon({
-            html: `<div class="custom-marker-icon flex justify-center items-center text-accent-terracotta"><i data-feather="${getIconName(loc.type)}"></i></div>`,
+            html: iconWrapper,
             className: '',
             iconSize: [28, 28],
             iconAnchor: [14, 28],
@@ -85,7 +105,9 @@ export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMore
         });
 
         const marker = L.marker([loc.lat, loc.lng], { icon: customIcon }).addTo(map);
-        marker.bindPopup(L.popup({ closeButton: false }).setContent(createPopupContent(loc)));
+
+        // Use a function for bindPopup to ensure content is fresh when opened
+        marker.bindPopup(() => createPopupContent(loc), { closeButton: false });
 
         marker.on('click', () => {
             onMarkerClick(loc.id);
@@ -138,6 +160,6 @@ export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMore
         flyToLocation,
         openMarkerPopup,
         updateMapRoute,
-        mapInstance: map // Expose raw map if needed, mainly for debugging or extensions
+        mapInstance: map
     };
 };
