@@ -58,7 +58,7 @@ export const renderSidebarList = (container, locations, itineraryIds, onLocClick
         const item = document.createElement('div');
         item.className = 'location-item p-4 rounded-lg cursor-pointer fade-in flex justify-between items-center bg-white shadow-sm mb-2';
         item.dataset.id = loc.id;
-        item.style.animationDelay = `${index * 50}ms`;
+        item.style.setProperty('--delay', `${index * 50}ms`);
 
         // Content Container
         const contentDiv = document.createElement('div');
@@ -107,7 +107,7 @@ export const renderSidebarList = (container, locations, itineraryIds, onLocClick
 
         container.appendChild(item);
     });
-    feather.replace();
+    // feather.replace(); // Optimizing: Called centrally in updateUI
 };
 
 export const renderItineraryList = (container, locations, itineraryIds, onRemoveClick, onClearClick) => {
@@ -142,9 +142,7 @@ export const renderItineraryList = (container, locations, itineraryIds, onRemove
         clearBtn.className = "text-xs text-red-500 hover:text-red-700 underline font-medium";
         clearBtn.textContent = "Clear All";
         clearBtn.onclick = () => {
-            if (confirm("Are you sure you want to clear your entire itinerary? This action cannot be undone.")) {
-                onClearClick();
-            }
+            onClearClick();
         };
         headerDiv.appendChild(clearBtn);
 
@@ -178,7 +176,7 @@ export const renderItineraryList = (container, locations, itineraryIds, onRemove
         removeBtn.addEventListener('click', () => onRemoveClick(id));
         container.appendChild(item);
     });
-    feather.replace();
+    // feather.replace(); // Optimizing: Called centrally in updateUI
 };
 
 export const updateActiveLocation = (container, id) => {

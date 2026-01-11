@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Note: 'unsafe-inline' is required for Leaflet and Vite dev server. In a strict production environment, this should be replaced with a nonce-based strategy. -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.tile.openstreetmap.org https://placehold.co; connect-src 'self'">
     <title>Uttarakhand Journey - Plan Your Trip</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,6 +12,12 @@
     <link rel="manifest" href="/manifest.json">
 </head>
 <body class="overflow-hidden">
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 z-[2000] bg-white flex flex-col items-center justify-center transition-opacity duration-500">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-accent-terracotta mb-4"></div>
+        <h2 class="text-xl font-serif text-text-indigo animate-pulse">Loading Mission Intel...</h2>
+    </div>
 
     <div class="main-layout flex h-screen w-screen relative">
 
