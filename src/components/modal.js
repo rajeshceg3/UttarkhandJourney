@@ -67,6 +67,61 @@ export const showModal = (location) => {
     feather.replace();
 };
 
+export const showConfirmModal = (message, onConfirm) => {
+    const modal = document.getElementById('location-modal');
+    if (!modal) return;
+
+    modal.innerHTML = '';
+
+    const contentDiv = document.createElement('div');
+    contentDiv.className = "modal-content bg-white p-6 rounded-lg shadow-xl w-11/12 max-w-sm relative animate-fade-in text-center";
+
+    const iconDiv = document.createElement('div');
+    iconDiv.className = "mb-4 text-accent-terracotta flex justify-center";
+    iconDiv.innerHTML = '<i data-feather="alert-circle" width="48" height="48"></i>';
+    contentDiv.appendChild(iconDiv);
+
+    const title = document.createElement('h3');
+    title.className = "text-xl font-serif font-bold mb-2";
+    title.textContent = "Are you sure?";
+    contentDiv.appendChild(title);
+
+    const msg = document.createElement('p');
+    msg.className = "text-gray-600 mb-6";
+    msg.textContent = message;
+    contentDiv.appendChild(msg);
+
+    const btnContainer = document.createElement('div');
+    btnContainer.className = "flex justify-center gap-4";
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = "px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 font-medium transition-colors";
+    cancelBtn.textContent = "Cancel";
+    cancelBtn.onclick = closeModal;
+    btnContainer.appendChild(cancelBtn);
+
+    const confirmBtn = document.createElement('button');
+    confirmBtn.className = "px-4 py-2 rounded-lg bg-accent-terracotta text-white hover:bg-red-600 font-medium transition-colors";
+    confirmBtn.textContent = "Yes, Clear It";
+    confirmBtn.onclick = () => {
+        onConfirm();
+        closeModal();
+    };
+    btnContainer.appendChild(confirmBtn);
+
+    contentDiv.appendChild(btnContainer);
+    modal.appendChild(contentDiv);
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+
+    modal.onclick = (e) => {
+        if (e.target === modal) closeModal();
+    };
+
+    feather.replace();
+};
+
 export const closeModal = () => {
     const modal = document.getElementById('location-modal');
     if (modal) {

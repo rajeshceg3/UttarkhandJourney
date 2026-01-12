@@ -117,9 +117,9 @@ describe('Sidebar Component', () => {
              const clearBtn = container.querySelector('button.text-red-500');
              expect(clearBtn).not.toBeNull();
 
-             // global.confirm mock returns true by default
+             // Modified: confirm() call removed in favor of Modal (handled in main.js)
+             // The sidebar just calls the onClearClick callback
              clearBtn.click();
-             expect(global.confirm).toHaveBeenCalled();
              expect(onClearClick).toHaveBeenCalled();
         });
 

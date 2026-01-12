@@ -117,21 +117,36 @@ export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMore
     });
 
     // Public Methods
+    /**
+     * Smoothly pans the map to a specific location.
+     * @param {number} lat - Latitude
+     * @param {number} lng - Longitude
+     */
     const flyToLocation = (lat, lng) => {
         if (map) {
             map.flyTo([lat, lng], 13);
         }
     };
 
+    /**
+     * Opens the popup for a specific marker.
+     * @param {number|string} id - Location ID
+     */
     const openMarkerPopup = (id) => {
         if (markers[id]) {
             markers[id].openPopup();
         }
     };
 
+    /**
+     * Updates the routing line on the map based on the current itinerary.
+     * Uses Leaflet Routing Machine to calculate and draw the route.
+     * @param {Array<number|string>} itineraryIds - List of location IDs in order
+     */
     const updateMapRoute = (itineraryIds) => {
         if (!map) return;
 
+        // Clear existing route
         if (routingControl) {
             map.removeControl(routingControl);
             routingControl = null;
@@ -144,6 +159,8 @@ export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMore
             .filter(Boolean)
             .map(loc => L.latLng(loc.lat, loc.lng));
 
+        // Create new route control
+        // Note: createMarker returns null to suppress default markers, as we use custom ones
         routingControl = L.Routing.control({
             waypoints: waypoints,
             routeWhileDragging: false,

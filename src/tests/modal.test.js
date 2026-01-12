@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { showModal, closeModal } from '../components/modal.js';
+import { showModal } from '../components/modal.js';
 
 // Mock feather
 vi.mock('feather-icons', () => ({

@@ -1,7 +1,7 @@
 import './style.css';
 import { initMap } from './components/map.js';
 import { renderSidebarList, renderFilters, renderItineraryList, updateActiveLocation, toggleSidebar } from './components/sidebar.js';
-import { showModal } from './components/modal.js';
+import { showModal, showConfirmModal } from './components/modal.js';
 import { loadItinerary, saveItinerary } from './utils/storage.js';
 import { locations } from './data/locations.js';
 import Toastify from 'toastify-js';
@@ -69,16 +69,21 @@ const init = () => {
     };
 
     const handleClearItinerary = () => {
-        itinerary = [];
-        saveItinerary(itinerary);
-        updateUI();
-        Toastify({
-            text: "Itinerary cleared.",
-            duration: 3000,
-            gravity: "bottom",
-            position: "right",
-            backgroundColor: "#D98C7A",
-        }).showToast();
+        showConfirmModal(
+            "Are you sure you want to clear your entire itinerary? This action cannot be undone.",
+            () => {
+                itinerary = [];
+                saveItinerary(itinerary);
+                updateUI();
+                Toastify({
+                    text: "Itinerary cleared.",
+                    duration: 3000,
+                    gravity: "bottom",
+                    position: "right",
+                    backgroundColor: "#D98C7A",
+                }).showToast();
+            }
+        );
     };
 
     const handleLocationClick = (loc) => {
@@ -139,11 +144,27 @@ const init = () => {
             if (sidebarEl) {
                 const isHidden = sidebarEl.classList.contains('-translate-x-full');
                 toggleSidebar(sidebarEl, isHidden);
+
+                // Map Resilience: Invalidate size after transition to prevent gray areas
+                setTimeout(() => {
+                    if (mapControls && mapControls.mapInstance) {
+                        mapControls.mapInstance.invalidateSize();
+                    }
+                }, 350); // Slightly longer than CSS transition (0.3s)
             }
         });
     }
 
     feather.replace();
+
+    // Remove loading overlay
+    const loadingOverlay = document.getElementById('loading-overlay');
+    if (loadingOverlay) {
+        loadingOverlay.style.opacity = '0';
+        setTimeout(() => {
+            loadingOverlay.remove();
+        }, 500);
+    }
 };
 
 document.addEventListener('DOMContentLoaded', init);

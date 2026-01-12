@@ -75,6 +75,7 @@ h1, h2, h3 {
 .location-item {
     transition: all 0.2s ease-in-out;
     border-left: 4px solid transparent;
+    animation-delay: var(--delay);
 }
 
 .location-item:hover {
