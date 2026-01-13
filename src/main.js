@@ -56,31 +56,67 @@ const init = () => {
     };
 
     const handleRemoveFromTrip = (id) => {
+        const itemToRestore = id;
         itinerary = itinerary.filter(itemId => itemId !== id);
         saveItinerary(itinerary);
         updateUI();
+
         Toastify({
-            text: "Removed from trip.",
-            duration: 3000,
+            text: "Removed from trip. Click to Undo.",
+            duration: 5000,
             gravity: "bottom",
             position: "right",
             backgroundColor: "#D98C7A",
+            stopOnFocus: true,
+            close: true,
+            onClick: function() {
+                if (!itinerary.includes(itemToRestore)) {
+                    itinerary.push(itemToRestore);
+                    saveItinerary(itinerary);
+                    updateUI();
+                    Toastify({
+                        text: "Restored!",
+                        duration: 2000,
+                        gravity: "bottom",
+                        position: "right",
+                        backgroundColor: "#A3B18A",
+                    }).showToast();
+                }
+            }
         }).showToast();
     };
 
     const handleClearItinerary = () => {
         showConfirmModal(
-            "Are you sure you want to clear your entire itinerary? This action cannot be undone.",
+            "Are you sure you want to clear your entire itinerary?",
             () => {
+                const backup = [...itinerary];
                 itinerary = [];
                 saveItinerary(itinerary);
                 updateUI();
+
                 Toastify({
-                    text: "Itinerary cleared.",
-                    duration: 3000,
+                    text: "Itinerary cleared. Click to Undo.",
+                    duration: 5000,
                     gravity: "bottom",
                     position: "right",
                     backgroundColor: "#D98C7A",
+                    stopOnFocus: true,
+                    close: true,
+                    onClick: function() {
+                        if (itinerary.length === 0) {
+                            itinerary = backup;
+                            saveItinerary(itinerary);
+                            updateUI();
+                            Toastify({
+                                text: "Itinerary restored!",
+                                duration: 2000,
+                                gravity: "bottom",
+                                position: "right",
+                                backgroundColor: "#A3B18A",
+                            }).showToast();
+                        }
+                    }
                 }).showToast();
             }
         );

@@ -35,8 +35,9 @@ Recent tactical interventions have stabilized User Experience (UX) through the i
     *   **Perceived Performance:** Added "Loading" overlays to mask initialization lag.
     *   **Visual Stability:** Fixed map rendering glitches during sidebar toggles (`map.invalidateSize()`).
 *   **Remaining Friction:**
-    *   No "Undo" capability for accidental deletions.
-    *   Map markers do not support clustering (performance degradation at >100 points).
+    *   **No "Undo" capability:** Accidental deletions require manual re-addition.
+    *   **Map Clutter:** Markers do not support clustering, leading to visual noise at high zoom levels.
+    *   **Route Optimization:** Route is purely sequential based on addition order, not geographically optimized.
 
 ## 3. GAP ANALYSIS
 
@@ -50,13 +51,12 @@ Recent tactical interventions have stabilized User Experience (UX) through the i
 
 ## 4. STRATEGIC ROADMAP
 
-### PHASE 1: IMMEDIATE STABILIZATION (COMPLETED)
+### PHASE 1: IMMEDIATE STABILIZATION (UX FOCUS)
 *   **Objective:** Eliminate critical UX friction and ensure baseline stability.
 *   **Actions:**
-    *   [x] Implement Custom Modal system (eliminate `window.confirm`).
-    *   [x] Implement Loading States.
-    *   [x] Verify UI integrity via automated screenshots.
-    *   [x] Standardize Error Handling.
+    *   [ ] **Implement Marker Clustering:** Use `Leaflet.markercluster` to declutter the tactical map view.
+    *   [ ] **Implement "Undo" Functionality:** Allow rapid recovery from accidental itinerary modifications via Toast actions.
+    *   [ ] **Refine CSP:** Begin separating inline styles to prepare for strict CSP enforcement.
 
 ### PHASE 2: SECURITY & INFRASTRUCTURE HARDENING (PRIORITY: HIGH)
 *   **Objective:** Secure the perimeter and prepare for deployment.
@@ -81,9 +81,9 @@ Recent tactical interventions have stabilized User Experience (UX) through the i
 
 *   **Risk:** Regression during strict CSP implementation.
     *   *Mitigation:* Use `sha-256` hashing for necessary inline styles initially, then refactor to classes.
-*   **Risk:** Performance hit from added libraries.
-    *   *Mitigation:* Enforce budget limits on bundle size (e.g., <150KB initial load).
+*   **Risk:** Performance hit from added libraries (Clustering).
+    *   *Mitigation:* Enforce budget limits on bundle size. Import only necessary modules.
 
-**CONCLUSION:** The repository is now operationally stable for current usage parameters. Execution of Phase 2 is mandatory before public release to high-threat (public internet) environments.
+**CONCLUSION:** The repository is operational but requires targeted UX and Security interventions. Immediate execution of Phase 1 is authorized.
 
 *JULES - END REPORT*

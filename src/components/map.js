@@ -1,5 +1,8 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import 'leaflet-routing-machine';
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 
@@ -15,6 +18,14 @@ export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMore
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
+
+    // Create a marker cluster group
+    const markersCluster = L.markerClusterGroup({
+        showCoverageOnHover: false,
+        spiderfyOnMaxZoom: true,
+        removeOutsideVisibleBounds: true,
+        disableClusteringAtZoom: 16
+    });
 
     const markers = {};
     let routingControl = null;
@@ -104,7 +115,8 @@ export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMore
             popupAnchor: [0, -28]
         });
 
-        const marker = L.marker([loc.lat, loc.lng], { icon: customIcon }).addTo(map);
+        // Add to cluster instead of map directly
+        const marker = L.marker([loc.lat, loc.lng], { icon: customIcon });
 
         // Use a function for bindPopup to ensure content is fresh when opened
         marker.bindPopup(() => createPopupContent(loc), { closeButton: false });
@@ -113,8 +125,12 @@ export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMore
             onMarkerClick(loc.id);
         });
 
+        markersCluster.addLayer(marker);
         markers[loc.id] = marker;
     });
+
+    // Add cluster group to map
+    map.addLayer(markersCluster);
 
     // Public Methods
     /**
@@ -125,6 +141,10 @@ export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMore
     const flyToLocation = (lat, lng) => {
         if (map) {
             map.flyTo([lat, lng], 13);
+
+            // If the marker is in a cluster, we might need to expand it
+            // Finding the marker by lat/lng or id is tricky without reference
+            // But flyTo zooms in, so it usually breaks the cluster
         }
     };
 
@@ -134,7 +154,10 @@ export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMore
      */
     const openMarkerPopup = (id) => {
         if (markers[id]) {
-            markers[id].openPopup();
+            // zoomToShowLayer is needed if the marker is clustered
+            markersCluster.zoomToShowLayer(markers[id], () => {
+                markers[id].openPopup();
+            });
         }
     };
 
