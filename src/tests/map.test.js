@@ -6,7 +6,10 @@ const mockMap = {
     setView: vi.fn().mockReturnThis(),
     flyTo: vi.fn(),
     removeControl: vi.fn(),
-    addControl: vi.fn(), // If needed
+    addControl: vi.fn(),
+    addLayer: vi.fn(),
+    removeLayer: vi.fn(),
+    invalidateSize: vi.fn(),
 };
 
 const mockMarker = {
@@ -20,6 +23,14 @@ const mockRoutingControl = {
     addTo: vi.fn(),
 };
 
+const mockClusterGroup = {
+    addLayer: vi.fn(),
+    addLayers: vi.fn(),
+    zoomToShowLayer: vi.fn((marker, cb) => cb && cb()),
+    addTo: vi.fn(),
+    clearLayers: vi.fn(),
+};
+
 vi.mock('leaflet', () => {
     return {
         default: {
@@ -29,6 +40,7 @@ vi.mock('leaflet', () => {
             divIcon: vi.fn(),
             popup: vi.fn(() => ({ setContent: vi.fn().mockReturnThis() })),
             latLng: vi.fn(),
+            markerClusterGroup: vi.fn(() => mockClusterGroup),
             Routing: {
                 control: vi.fn(() => mockRoutingControl)
             }
@@ -38,6 +50,7 @@ vi.mock('leaflet', () => {
 
 // Mock Leaflet Routing Machine CSS import (since we are in node/jsdom)
 vi.mock('leaflet-routing-machine', () => ({}));
+vi.mock('leaflet.markercluster', () => ({}));
 
 import { initMap } from '../components/map.js';
 
@@ -60,9 +73,8 @@ describe('Map Component', () => {
 
     it('should add markers for each location', () => {
         initMap('map', locations, vi.fn(), vi.fn(), vi.fn());
-        // Verify L.marker called twice
-        // We need to import L to check calls or check the mock
-        // Since we mocked the default export of leaflet
+        // Check if marker was created
+        // Since we mock L, we can verify calls if we import it or check logic
     });
 
     it('flyToLocation should call map.flyTo', () => {
@@ -74,7 +86,5 @@ describe('Map Component', () => {
     it('updateMapRoute should add routing control', () => {
          const controls = initMap('map', locations, vi.fn(), vi.fn(), vi.fn());
          controls.updateMapRoute([1, 2]);
-         // Using string access for mocked module property if needed, but here we can check if L.Routing.control was called
-         // Since we can't easily access the L object inside the test unless we import it
     });
 });
