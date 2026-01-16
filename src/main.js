@@ -37,13 +37,30 @@ const init = () => {
             itinerary.push(id);
             saveItinerary(itinerary);
             updateUI();
-            Toastify({
-                text: "Added to your trip!",
-                duration: 3000,
+            const toast = Toastify({
+                text: "Added to your trip! Click to Undo.",
+                duration: 4000,
                 gravity: "bottom",
                 position: "right",
                 backgroundColor: "#A3B18A",
-            }).showToast();
+                stopOnFocus: true,
+                close: true,
+                onClick: function() {
+                    toast.hideToast();
+                    // Undo logic
+                    itinerary = itinerary.filter(itemId => itemId !== id);
+                    saveItinerary(itinerary);
+                    updateUI();
+                    Toastify({
+                        text: "Action undone.",
+                        duration: 2000,
+                        gravity: "bottom",
+                        position: "right",
+                        backgroundColor: "#D98C7A",
+                    }).showToast();
+                }
+            });
+            toast.showToast();
         } else {
              Toastify({
                 text: "Already in your trip.",
@@ -61,7 +78,7 @@ const init = () => {
         saveItinerary(itinerary);
         updateUI();
 
-        Toastify({
+        const toast = Toastify({
             text: "Removed from trip. Click to Undo.",
             duration: 5000,
             gravity: "bottom",
@@ -70,6 +87,7 @@ const init = () => {
             stopOnFocus: true,
             close: true,
             onClick: function() {
+                toast.hideToast();
                 if (!itinerary.includes(itemToRestore)) {
                     itinerary.push(itemToRestore);
                     saveItinerary(itinerary);
@@ -83,7 +101,8 @@ const init = () => {
                     }).showToast();
                 }
             }
-        }).showToast();
+        });
+        toast.showToast();
     };
 
     const handleClearItinerary = () => {
@@ -95,7 +114,7 @@ const init = () => {
                 saveItinerary(itinerary);
                 updateUI();
 
-                Toastify({
+                const toast = Toastify({
                     text: "Itinerary cleared. Click to Undo.",
                     duration: 5000,
                     gravity: "bottom",
@@ -104,6 +123,7 @@ const init = () => {
                     stopOnFocus: true,
                     close: true,
                     onClick: function() {
+                        toast.hideToast();
                         if (itinerary.length === 0) {
                             itinerary = backup;
                             saveItinerary(itinerary);
@@ -117,7 +137,8 @@ const init = () => {
                             }).showToast();
                         }
                     }
-                }).showToast();
+                });
+                toast.showToast();
             }
         );
     };
@@ -196,7 +217,7 @@ const init = () => {
     // Remove loading overlay
     const loadingOverlay = document.getElementById('loading-overlay');
     if (loadingOverlay) {
-        loadingOverlay.style.opacity = '0';
+        loadingOverlay.classList.add('opacity-0');
         setTimeout(() => {
             loadingOverlay.remove();
         }, 500);

@@ -24,7 +24,21 @@ export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMore
         showCoverageOnHover: false,
         spiderfyOnMaxZoom: true,
         removeOutsideVisibleBounds: true,
-        disableClusteringAtZoom: 16
+        disableClusteringAtZoom: 16,
+        iconCreateFunction: function (cluster) {
+            const count = cluster.getChildCount();
+            let colorClass = 'bg-accent-sage';
+
+            if (count >= 5) {
+                colorClass = 'bg-accent-terracotta';
+            }
+
+            return L.divIcon({
+                html: `<div class="${colorClass} text-white font-bold rounded-full flex items-center justify-center shadow-lg border-2 border-white transition-transform hover:scale-110" style="width: 40px; height: 40px;">${count}</div>`,
+                className: 'marker-cluster-custom',
+                iconSize: L.point(40, 40)
+            });
+        }
     });
 
     const markers = {};
