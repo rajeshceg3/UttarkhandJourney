@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { showModal } from '../components/modal.js';
+import { showModal, showConfirmModal } from '../components/modal.js';
 
 // Mock feather
 vi.mock('feather-icons', () => ({
@@ -20,7 +20,8 @@ describe('Modal Component', () => {
         modal = document.getElementById('location-modal');
     });
 
-    it('should show modal with correct content', () => {
+    describe('showModal', () => {
+        it('should show modal with correct content', () => {
         const location = {
             title: 'Test Location',
             image: 'test.jpg',
@@ -62,5 +63,38 @@ describe('Modal Component', () => {
         const content = modal.querySelector('.modal-content');
         content.click();
         expect(modal.classList.contains('hidden')).toBe(false);
+    });
+    });
+
+    describe('showConfirmModal', () => {
+        it('should render confirm modal with message', () => {
+            showConfirmModal('Are you sure?', vi.fn());
+            expect(modal.classList.contains('hidden')).toBe(false);
+            expect(modal.textContent).toContain('Are you sure?');
+            expect(modal.textContent).toContain('Yes, Clear It');
+            expect(modal.textContent).toContain('Cancel');
+        });
+
+        it('should call onConfirm and close when confirmed', () => {
+            const onConfirm = vi.fn();
+            showConfirmModal('Msg', onConfirm);
+
+            const confirmBtn = modal.querySelectorAll('button')[1]; // Second button is confirm
+            confirmBtn.click();
+
+            expect(onConfirm).toHaveBeenCalled();
+            expect(modal.classList.contains('hidden')).toBe(true);
+        });
+
+        it('should close when cancelled', () => {
+            const onConfirm = vi.fn();
+            showConfirmModal('Msg', onConfirm);
+
+            const cancelBtn = modal.querySelectorAll('button')[0]; // First button is cancel
+            cancelBtn.click();
+
+            expect(onConfirm).not.toHaveBeenCalled();
+            expect(modal.classList.contains('hidden')).toBe(true);
+        });
     });
 });
