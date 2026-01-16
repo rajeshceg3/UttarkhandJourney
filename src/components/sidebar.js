@@ -8,7 +8,7 @@ export const renderFilters = (container, locations, onFilterChange) => {
 
     types.forEach(type => {
         const btn = document.createElement('button');
-        btn.className = `filter-btn px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 capitalize transition-all border border-transparent ${type === 'all' ? 'active' : ''}`;
+        btn.className = `filter-btn px-4 py-1.5 rounded-full text-sm font-medium bg-gray-50 text-gray-500 capitalize transition-all border border-transparent hover:bg-white hover:shadow-sm ${type === 'all' ? 'active' : ''}`;
         btn.dataset.type = type;
         btn.ariaLabel = `Filter by ${type}`;
         btn.textContent = type.replace('-', ' ');
@@ -35,18 +35,18 @@ export const renderSidebarList = (container, locations, itineraryIds, onLocClick
 
     if (filteredLocations.length === 0) {
         const emptyState = document.createElement('div');
-        emptyState.className = 'flex flex-col items-center justify-center py-8 text-gray-500';
+        emptyState.className = 'flex flex-col items-center justify-center py-12 text-gray-400';
 
         const icon = document.createElement('i');
         icon.dataset.feather = "map";
-        icon.className = "mb-2 text-gray-300";
-        icon.setAttribute('width', '32');
-        icon.setAttribute('height', '32');
+        icon.className = "mb-3 text-gray-300";
+        icon.setAttribute('width', '48');
+        icon.setAttribute('height', '48');
         emptyState.appendChild(icon);
 
         const text = document.createElement('p');
-        text.className = "text-sm";
-        text.textContent = 'No locations found matching this filter.';
+        text.className = "text-base font-medium";
+        text.textContent = 'No locations found.';
         emptyState.appendChild(text);
 
         container.appendChild(emptyState);
@@ -56,58 +56,94 @@ export const renderSidebarList = (container, locations, itineraryIds, onLocClick
 
     filteredLocations.forEach((loc, index) => {
         const item = document.createElement('div');
-        item.className = 'location-item p-4 rounded-lg cursor-pointer fade-in flex justify-between items-center bg-white shadow-sm mb-2';
+        item.className = 'location-item group relative p-3 rounded-xl cursor-pointer bg-white mb-3 flex gap-4 overflow-hidden';
         item.dataset.id = loc.id;
         item.style.setProperty('--delay', `${index * 50}ms`);
 
-        // Content Container
+        // Thumbnail Image
+        const imgContainer = document.createElement('div');
+        imgContainer.className = "w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 relative";
+
+        const img = document.createElement('img');
+        img.src = loc.image; // Assuming loc.image exists, fallback if needed
+        img.alt = loc.title;
+        img.className = "w-full h-full object-cover transition-transform duration-500 group-hover:scale-110";
+        img.loading = "lazy";
+
+        // Error handling for image
+        img.onerror = () => {
+            img.style.display = 'none';
+            const fallbackIcon = document.createElement('i');
+            fallbackIcon.dataset.feather = 'image';
+            fallbackIcon.className = "text-gray-300 absolute inset-0 m-auto";
+            imgContainer.appendChild(fallbackIcon);
+            feather.replace();
+        };
+
+        imgContainer.appendChild(img);
+        item.appendChild(imgContainer);
+
+        // Content
         const contentDiv = document.createElement('div');
+        contentDiv.className = "flex-1 min-w-0 flex flex-col justify-center";
 
         const title = document.createElement('h3');
-        title.className = 'font-bold text-lg font-serif';
+        title.className = 'font-bold text-base text-gray-800 font-serif leading-tight mb-1 truncate';
         title.textContent = loc.title;
         contentDiv.appendChild(title);
 
+        const type = document.createElement('span');
+        type.className = "text-xs text-accent-terracotta font-medium uppercase tracking-wider mb-1 block";
+        type.textContent = loc.type.replace('-', ' ');
+        contentDiv.appendChild(type);
+
         const desc = document.createElement('p');
-        desc.className = 'text-sm text-gray-600 truncate w-48';
+        desc.className = 'text-xs text-gray-500 line-clamp-2';
         desc.textContent = loc.description;
         contentDiv.appendChild(desc);
 
         item.appendChild(contentDiv);
 
-        // Add Button Logic
+        // Action Button
         const isAdded = itineraryIds.includes(loc.id);
-        const addBtn = document.createElement('button');
-        addBtn.className = `add-sidebar-btn p-2 rounded-full transition-colors ${isAdded ? 'bg-accent-sage/20 text-accent-sage cursor-default' : 'hover:bg-gray-100 text-gray-400 hover:text-accent-sage'}`;
-        addBtn.dataset.addId = loc.id;
-        addBtn.ariaLabel = isAdded ? `${loc.title} added to trip` : `Add ${loc.title} to trip`;
-        addBtn.disabled = isAdded; // Disable if already added
+        const actionBtn = document.createElement('button');
+        actionBtn.className = `w-10 h-10 rounded-full flex items-center justify-center transition-all ${isAdded ? 'bg-accent-sage text-white shadow-md' : 'bg-gray-50 text-gray-400 hover:bg-accent-sage hover:text-white hover:shadow-md'}`;
+        actionBtn.dataset.addId = loc.id;
+        actionBtn.ariaLabel = isAdded ? `Added` : `Add to trip`;
+        actionBtn.disabled = isAdded;
 
         const icon = document.createElement('i');
-        icon.dataset.feather = isAdded ? "check" : "plus-circle";
-        if (isAdded) {
-             // icon.className = "text-accent-sage"; // Handled by parent class
-        } else {
-             icon.className = "text-accent-sage";
-        }
-        addBtn.appendChild(icon);
+        icon.dataset.feather = isAdded ? "check" : "plus";
+        icon.setAttribute('width', '20');
+        icon.setAttribute('height', '20');
+        actionBtn.appendChild(icon);
 
-        item.appendChild(addBtn);
+        // Add to item but position it or flex it?
+        // Let's use flex layout
+        const actionDiv = document.createElement('div');
+        actionDiv.className = "flex items-center justify-center pl-2";
+        actionDiv.appendChild(actionBtn);
+        item.appendChild(actionDiv);
 
         // Events
-        contentDiv.addEventListener('click', () => onLocClick(loc));
+        item.addEventListener('click', (e) => {
+            // Prevent triggering if button was clicked
+            if (e.target.closest('button')) return;
+            onLocClick(loc);
+        });
+
         if (!isAdded) {
-            addBtn.addEventListener('click', (e) => {
+            actionBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                // Animation for button
+                actionBtn.classList.add('scale-90');
+                setTimeout(() => actionBtn.classList.remove('scale-90'), 150);
                 onAddClick(loc.id);
             });
-        } else {
-             addBtn.addEventListener('click', (e) => e.stopPropagation());
         }
 
         container.appendChild(item);
     });
-    // feather.replace(); // Optimizing: Called centrally in updateUI
 };
 
 export const renderItineraryList = (container, locations, itineraryIds, onRemoveClick, onClearClick) => {
@@ -116,7 +152,7 @@ export const renderItineraryList = (container, locations, itineraryIds, onRemove
 
     if (itineraryIds.length === 0) {
         const emptyState = document.createElement('div');
-        emptyState.className = 'flex flex-col items-center justify-center py-6 text-gray-500';
+        emptyState.className = 'flex flex-col items-center justify-center py-6 text-gray-400';
 
         const icon = document.createElement('i');
         icon.dataset.feather = "calendar";
@@ -124,8 +160,8 @@ export const renderItineraryList = (container, locations, itineraryIds, onRemove
         emptyState.appendChild(icon);
 
         const text = document.createElement('p');
-        text.className = "text-sm italic";
-        text.textContent = 'Start adding destinations!';
+        text.className = "text-sm";
+        text.textContent = 'Your trip is empty.';
         emptyState.appendChild(text);
 
         container.appendChild(emptyState);
@@ -133,57 +169,82 @@ export const renderItineraryList = (container, locations, itineraryIds, onRemove
         return;
     }
 
-    // Add "Clear All" button if there are items
+    // Header with Clear All
     if (itineraryIds.length > 0 && onClearClick) {
         const headerDiv = document.createElement('div');
-        headerDiv.className = "flex justify-end mb-2";
+        headerDiv.className = "flex justify-between items-center mb-3 px-1";
+
+        const countSpan = document.createElement('span');
+        countSpan.className = "text-xs font-bold text-gray-400 uppercase tracking-widest";
+        countSpan.textContent = `${itineraryIds.length} Destinations`;
+        headerDiv.appendChild(countSpan);
 
         const clearBtn = document.createElement('button');
-        clearBtn.className = "text-xs text-red-500 hover:text-red-700 underline font-medium";
-        clearBtn.textContent = "Clear All";
-        clearBtn.onclick = () => {
-            onClearClick();
-        };
+        clearBtn.className = "text-xs text-red-400 hover:text-red-600 font-medium transition-colors flex items-center gap-1";
+        clearBtn.innerHTML = 'Clear All';
+        clearBtn.onclick = onClearClick;
         headerDiv.appendChild(clearBtn);
 
         container.appendChild(headerDiv);
     }
 
-    itineraryIds.forEach(id => {
+    const listContainer = document.createElement('div');
+    listContainer.className = "space-y-2";
+
+    itineraryIds.forEach((id, index) => {
         const loc = locations.find(l => l.id === id);
         if (!loc) return;
 
         const item = document.createElement('div');
-        item.className = 'itinerary-item p-3 rounded-lg flex justify-between items-center bg-white shadow-sm mb-2 border-l-4 border-accent-terracotta';
+        item.className = 'itinerary-item p-3 rounded-lg flex gap-3 items-center bg-white shadow-sm border border-gray-100 group';
+        // Add explicit left border color via style or class based on type?
+        // Using common class from CSS
+
+        // Number badge
+        const badge = document.createElement('div');
+        badge.className = "w-6 h-6 rounded-full bg-accent-terracotta text-white flex items-center justify-center text-xs font-bold shadow-sm";
+        badge.textContent = index + 1;
+        item.appendChild(badge);
 
         const titleSpan = document.createElement('span');
-        titleSpan.className = 'font-medium';
+        titleSpan.className = 'font-medium text-sm text-gray-700 flex-1 truncate';
         titleSpan.textContent = loc.title;
         item.appendChild(titleSpan);
 
         const removeBtn = document.createElement('button');
-        removeBtn.className = 'remove-btn text-gray-400 hover:text-red-500 transition-colors';
-        removeBtn.ariaLabel = `Remove ${loc.title} from trip`;
+        removeBtn.className = 'w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100';
+        removeBtn.ariaLabel = `Remove ${loc.title}`;
 
         const icon = document.createElement('i');
-        icon.dataset.feather = "x";
+        icon.dataset.feather = "trash-2"; // Changed to trash for better semantics
         icon.setAttribute('width', '16');
         icon.setAttribute('height', '16');
         removeBtn.appendChild(icon);
 
-        item.appendChild(removeBtn);
+        removeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            onRemoveClick(id);
+        });
 
-        removeBtn.addEventListener('click', () => onRemoveClick(id));
-        container.appendChild(item);
+        item.appendChild(removeBtn);
+        listContainer.appendChild(item);
     });
-    // feather.replace(); // Optimizing: Called centrally in updateUI
+
+    container.appendChild(listContainer);
 };
 
 export const updateActiveLocation = (container, id) => {
     if (!container) return;
-    container.querySelectorAll('.location-item').forEach(el => el.classList.remove('active'));
+    container.querySelectorAll('.location-item').forEach(el => {
+        el.classList.remove('active');
+        el.classList.remove('ring-2', 'ring-accent-sage', 'ring-offset-2');
+    });
     const activeEl = container.querySelector(`.location-item[data-id="${id}"]`);
-    if (activeEl) activeEl.classList.add('active');
+    if (activeEl) {
+        activeEl.classList.add('active');
+        // Add accessibility focus ring visual
+        activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
 };
 
 export const toggleSidebar = (sidebarEl, isOpen) => {

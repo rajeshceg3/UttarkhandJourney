@@ -13,8 +13,8 @@ vi.mock('feather-icons', () => ({
 global.confirm = vi.fn(() => true);
 
 const mockLocations = [
-    { id: 1, title: 'Loc 1', type: 'temple', description: 'Desc 1', lat: 10, lng: 10 },
-    { id: 2, title: 'Loc 2', type: 'adventure', description: 'Desc 2', lat: 20, lng: 20 },
+    { id: 1, title: 'Loc 1', type: 'temple', description: 'Desc 1', lat: 10, lng: 10, image: 'img1.jpg' },
+    { id: 2, title: 'Loc 2', type: 'adventure', description: 'Desc 2', lat: 20, lng: 20, image: 'img2.jpg' },
 ];
 
 describe('Sidebar Component', () => {
@@ -71,7 +71,8 @@ describe('Sidebar Component', () => {
             renderSidebarList(container, mockLocations, [], onLocClick, onAddClick);
 
             const item = container.querySelector('.location-item');
-            item.querySelector('div').click(); // click the text part
+            // Click the item itself as the click listener is on the item (except button)
+            item.click();
             expect(onLocClick).toHaveBeenCalledWith(mockLocations[0]);
         });
 
@@ -80,7 +81,8 @@ describe('Sidebar Component', () => {
             const onAddClick = vi.fn();
             renderSidebarList(container, mockLocations, [], onLocClick, onAddClick);
 
-            const btn = container.querySelector('.add-sidebar-btn');
+            // Updated selector based on new implementation
+            const btn = container.querySelector('button[aria-label="Add to trip"]');
             btn.click();
             expect(onAddClick).toHaveBeenCalledWith(mockLocations[0].id);
         });
@@ -91,9 +93,9 @@ describe('Sidebar Component', () => {
             const itinerary = [mockLocations[0].id];
             renderSidebarList(container, mockLocations, itinerary, onLocClick, onAddClick);
 
-            const btn = container.querySelector(`.location-item[data-id="${mockLocations[0].id}"] .add-sidebar-btn`);
+            const btn = container.querySelector(`.location-item[data-id="${mockLocations[0].id}"] button`);
             expect(btn.disabled).toBe(true);
-            expect(btn.ariaLabel).toContain('added');
+            expect(btn.ariaLabel).toBe('Added');
         });
     });
 
@@ -114,11 +116,12 @@ describe('Sidebar Component', () => {
              const itinerary = [mockLocations[0].id];
              renderItineraryList(container, mockLocations, itinerary, onRemoveClick, onClearClick);
 
-             const clearBtn = container.querySelector('button.text-red-500');
+             // New implementation uses aria-label or text content?
+             // Logic says: clearBtn.innerHTML = 'Clear All'
+             // And class includes text-red-400
+             const clearBtn = container.querySelector('button.text-red-400');
              expect(clearBtn).not.toBeNull();
 
-             // Modified: confirm() call removed in favor of Modal (handled in main.js)
-             // The sidebar just calls the onClearClick callback
              clearBtn.click();
              expect(onClearClick).toHaveBeenCalled();
         });
@@ -128,7 +131,7 @@ describe('Sidebar Component', () => {
              const onClearClick = vi.fn();
              renderItineraryList(container, mockLocations, [], onRemoveClick, onClearClick);
 
-             expect(container.textContent).toContain('Start adding destinations');
+             expect(container.textContent).toContain('Your trip is empty');
         });
     });
 });

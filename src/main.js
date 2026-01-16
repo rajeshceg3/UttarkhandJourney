@@ -17,6 +17,7 @@ const init = () => {
     const filterContainerEl = document.getElementById('filter-container');
     const itineraryListEl = document.getElementById('itinerary-list');
     const mobileToggleBtn = document.getElementById('mobile-toggle');
+    const mobileCloseBtn = document.getElementById('mobile-close');
     const sidebarEl = document.getElementById('sidebar');
 
     if (!sidebarListEl || !filterContainerEl || !itineraryListEl) {
@@ -38,13 +39,14 @@ const init = () => {
             saveItinerary(itinerary);
             updateUI();
             const toast = Toastify({
-                text: "Added to your trip! Click to Undo.",
+                text: "Added to trip!",
                 duration: 4000,
-                gravity: "bottom",
-                position: "right",
-                backgroundColor: "#A3B18A",
+                gravity: "top", // Top for better visibility on desktop/mobile mixed use
+                position: "center",
+                backgroundColor: "#81B29A",
                 stopOnFocus: true,
                 close: true,
+                className: "glass-dark rounded-lg shadow-lg font-medium",
                 onClick: function() {
                     toast.hideToast();
                     // Undo logic
@@ -52,22 +54,24 @@ const init = () => {
                     saveItinerary(itinerary);
                     updateUI();
                     Toastify({
-                        text: "Action undone.",
+                        text: "Action undone",
                         duration: 2000,
-                        gravity: "bottom",
-                        position: "right",
-                        backgroundColor: "#D98C7A",
+                        gravity: "top",
+                        position: "center",
+                        backgroundColor: "#E07A5F",
+                        className: "glass-dark rounded-lg shadow-lg",
                     }).showToast();
                 }
             });
             toast.showToast();
         } else {
              Toastify({
-                text: "Already in your trip.",
+                text: "Already in trip",
                 duration: 3000,
-                gravity: "bottom",
-                position: "right",
-                backgroundColor: "#D98C7A",
+                gravity: "top",
+                position: "center",
+                backgroundColor: "#E07A5F",
+                className: "glass-dark rounded-lg shadow-lg",
             }).showToast();
         }
     };
@@ -79,13 +83,14 @@ const init = () => {
         updateUI();
 
         const toast = Toastify({
-            text: "Removed from trip. Click to Undo.",
-            duration: 5000,
-            gravity: "bottom",
-            position: "right",
-            backgroundColor: "#D98C7A",
+            text: "Removed from trip",
+            duration: 4000,
+            gravity: "top",
+            position: "center",
+            backgroundColor: "#E07A5F",
             stopOnFocus: true,
             close: true,
+            className: "glass-dark rounded-lg shadow-lg",
             onClick: function() {
                 toast.hideToast();
                 if (!itinerary.includes(itemToRestore)) {
@@ -95,9 +100,10 @@ const init = () => {
                     Toastify({
                         text: "Restored!",
                         duration: 2000,
-                        gravity: "bottom",
-                        position: "right",
-                        backgroundColor: "#A3B18A",
+                        gravity: "top",
+                        position: "center",
+                        backgroundColor: "#81B29A",
+                        className: "glass-dark rounded-lg shadow-lg",
                     }).showToast();
                 }
             }
@@ -115,13 +121,14 @@ const init = () => {
                 updateUI();
 
                 const toast = Toastify({
-                    text: "Itinerary cleared. Click to Undo.",
-                    duration: 5000,
-                    gravity: "bottom",
-                    position: "right",
-                    backgroundColor: "#D98C7A",
+                    text: "Itinerary cleared",
+                    duration: 4000,
+                    gravity: "top",
+                    position: "center",
+                    backgroundColor: "#E07A5F",
                     stopOnFocus: true,
                     close: true,
+                    className: "glass-dark rounded-lg shadow-lg",
                     onClick: function() {
                         toast.hideToast();
                         if (itinerary.length === 0) {
@@ -131,9 +138,10 @@ const init = () => {
                             Toastify({
                                 text: "Itinerary restored!",
                                 duration: 2000,
-                                gravity: "bottom",
-                                position: "right",
-                                backgroundColor: "#A3B18A",
+                                gravity: "top",
+                                position: "center",
+                                backgroundColor: "#81B29A",
+                                className: "glass-dark rounded-lg shadow-lg",
                             }).showToast();
                         }
                     }
@@ -202,13 +210,19 @@ const init = () => {
                 const isHidden = sidebarEl.classList.contains('-translate-x-full');
                 toggleSidebar(sidebarEl, isHidden);
 
-                // Map Resilience: Invalidate size after transition to prevent gray areas
+                // Map Resilience
                 setTimeout(() => {
                     if (mapControls && mapControls.mapInstance) {
                         mapControls.mapInstance.invalidateSize();
                     }
-                }, 350); // Slightly longer than CSS transition (0.3s)
+                }, 350);
             }
+        });
+    }
+
+    if (mobileCloseBtn) {
+        mobileCloseBtn.addEventListener('click', () => {
+             if (sidebarEl) toggleSidebar(sidebarEl, false);
         });
     }
 
@@ -217,10 +231,12 @@ const init = () => {
     // Remove loading overlay
     const loadingOverlay = document.getElementById('loading-overlay');
     if (loadingOverlay) {
-        loadingOverlay.classList.add('opacity-0');
         setTimeout(() => {
-            loadingOverlay.remove();
-        }, 500);
+            loadingOverlay.classList.add('opacity-0');
+            setTimeout(() => {
+                loadingOverlay.remove();
+            }, 500);
+        }, 800); // Slight delay to show off the loader
     }
 };
 

@@ -32,7 +32,7 @@ describe('Modal Component', () => {
 
         expect(modal.classList.contains('hidden')).toBe(false);
         expect(modal.querySelector('h2').textContent).toBe(location.title);
-        expect(modal.querySelector('p').textContent).toBe(location.description);
+        expect(modal.textContent).toContain(location.description);
         expect(modal.querySelector('img').src).toContain(location.image);
     });
 
@@ -40,7 +40,8 @@ describe('Modal Component', () => {
         const location = { title: 'T', image: 'i', description: 'd', type: 'c' };
         showModal(location);
 
-        const closeBtn = modal.querySelector('.modal-close-btn');
+        // Updated selector as per new design (button with aria-label)
+        const closeBtn = modal.querySelector('button[aria-label="Close modal"]');
         closeBtn.click();
 
         expect(modal.classList.contains('hidden')).toBe(true);
