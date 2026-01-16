@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderSidebarList, renderFilters, renderItineraryList } from '../components/sidebar.js';
+import { renderSidebarList, renderFilters, renderItineraryList, toggleSidebar, updateActiveLocation } from '../components/sidebar.js';
 
 // Mock feather
 vi.mock('feather-icons', () => ({
@@ -8,9 +8,6 @@ vi.mock('feather-icons', () => ({
         replace: vi.fn(),
     },
 }));
-
-// Mock confirm
-global.confirm = vi.fn(() => true);
 
 const mockLocations = [
     { id: 1, title: 'Loc 1', type: 'temple', description: 'Desc 1', lat: 10, lng: 10 },
@@ -129,6 +126,57 @@ describe('Sidebar Component', () => {
              renderItineraryList(container, mockLocations, [], onRemoveClick, onClearClick);
 
              expect(container.textContent).toContain('Start adding destinations');
+        });
+    });
+
+    describe('toggleSidebar', () => {
+        it('should open sidebar', () => {
+            const el = document.createElement('div');
+            el.classList.add('-translate-x-full');
+            toggleSidebar(el, true);
+            expect(el.classList.contains('translate-x-0')).toBe(true);
+            expect(el.classList.contains('-translate-x-full')).toBe(false);
+        });
+
+        it('should close sidebar', () => {
+            const el = document.createElement('div');
+            el.classList.add('translate-x-0');
+            toggleSidebar(el, false);
+            expect(el.classList.contains('-translate-x-full')).toBe(true);
+            expect(el.classList.contains('translate-x-0')).toBe(false);
+        });
+
+        it('should do nothing if element is null', () => {
+            expect(() => toggleSidebar(null, true)).not.toThrow();
+        });
+    });
+
+    describe('updateActiveLocation', () => {
+        it('should highlight active location', () => {
+            container.innerHTML = `
+                <div class="location-item" data-id="1"></div>
+                <div class="location-item active" data-id="2"></div>
+            `;
+            updateActiveLocation(container, 1);
+
+            expect(container.querySelector('[data-id="1"]').classList.contains('active')).toBe(true);
+            expect(container.querySelector('[data-id="2"]').classList.contains('active')).toBe(false);
+        });
+
+        it('should do nothing if container is null', () => {
+             expect(() => updateActiveLocation(null, 1)).not.toThrow();
+        });
+    });
+
+    describe('safeguards', () => {
+        it('renderFilters should handle null container', () => {
+             expect(() => renderFilters(null, [], () => {})).not.toThrow();
+        });
+        it('renderSidebarList should handle null container', () => {
+             expect(() => renderSidebarList(null, [], [], () => {}, () => {})).not.toThrow();
+        });
+        it('renderItineraryList should handle null container', () => {
+             expect(() => renderItineraryList(null, [], [], () => {}, () => {})).not.toThrow();
         });
     });
 });

@@ -1,33 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-
-// Create a mock for localStorage since we might be in node env or jsdom might be slow
-const localStorageMock = (() => {
-  let store = {};
-  return {
-    getItem: vi.fn(key => store[key] || null),
-    setItem: vi.fn((key, value) => { store[key] = value.toString(); }),
-    clear: vi.fn(() => { store = {}; }),
-    removeItem: vi.fn(key => { delete store[key]; })
-  };
-})();
-
-// Mock global window and localStorage if they don't exist
-if (typeof window === 'undefined') {
-    global.window = {};
-}
-if (typeof localStorage === 'undefined') {
-    global.localStorage = localStorageMock;
-}
-
-// Now import the module under test
-// Note: We need to use dynamic import or require to ensure mocks are set up BEFORE the module is loaded
-// if the module uses localStorage at the top level.
-// `src/utils/storage.js` uses localStorage inside functions, so it's safe to import statically usually.
 import { loadItinerary, saveItinerary } from '../utils/storage.js';
 
 describe('Storage Utils', () => {
     beforeEach(() => {
-        global.localStorage.clear();
+        localStorage.clear();
         vi.clearAllMocks();
     });
 
@@ -44,8 +20,42 @@ describe('Storage Utils', () => {
     });
 
     it('should return empty array if loaded data is not an array', () => {
-        global.localStorage.getItem.mockReturnValue('{"not": "an array"}');
+        // Spy on localStorage.getItem to return invalid JSON
+        const getItemSpy = vi.spyOn(Storage.prototype, 'getItem');
+        getItemSpy.mockReturnValue('{"not": "an array"}');
+
         const result = loadItinerary();
         expect(result).toEqual([]);
+
+        getItemSpy.mockRestore();
+    });
+
+    it('should return empty array if JSON parse fails', () => {
+        const getItemSpy = vi.spyOn(Storage.prototype, 'getItem');
+        getItemSpy.mockReturnValue('{invalid json');
+
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+        const result = loadItinerary();
+        expect(result).toEqual([]);
+        expect(consoleSpy).toHaveBeenCalled();
+
+        getItemSpy.mockRestore();
+        consoleSpy.mockRestore();
+    });
+
+    it('should catch error when saving itinerary fails', () => {
+        const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
+        setItemSpy.mockImplementation(() => {
+             throw new Error('Quota exceeded');
+        });
+
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+        saveItinerary(['test']);
+        expect(consoleSpy).toHaveBeenCalled();
+
+        setItemSpy.mockRestore();
+        consoleSpy.mockRestore();
     });
 });
