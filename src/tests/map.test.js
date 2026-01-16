@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import L from 'leaflet'; // Import mocked L to access spies
 
 // Mock Leaflet
 const mockMap = {
@@ -29,6 +30,11 @@ const mockClusterGroup = {
     zoomToShowLayer: vi.fn((marker, cb) => cb && cb()),
     addTo: vi.fn(),
     clearLayers: vi.fn(),
+    getChildCount: vi.fn(() => 10),
+};
+
+const mockControlZoom = {
+    addTo: vi.fn(),
 };
 
 vi.mock('leaflet', () => {
@@ -38,9 +44,13 @@ vi.mock('leaflet', () => {
             tileLayer: vi.fn(() => ({ addTo: vi.fn() })),
             marker: vi.fn(() => mockMarker),
             divIcon: vi.fn(),
+            point: vi.fn(),
             popup: vi.fn(() => ({ setContent: vi.fn().mockReturnThis() })),
             latLng: vi.fn(),
             markerClusterGroup: vi.fn(() => mockClusterGroup),
+            control: {
+                zoom: vi.fn(() => mockControlZoom)
+            },
             Routing: {
                 control: vi.fn(() => mockRoutingControl)
             }
@@ -69,22 +79,24 @@ describe('Map Component', () => {
     it('should initialize map', () => {
         const controls = initMap('map', locations, vi.fn(), vi.fn(), vi.fn());
         expect(controls).not.toBeNull();
+        expect(L.control.zoom).toHaveBeenCalled(); // Updated to check custom zoom control
     });
 
     it('should add markers for each location', () => {
         initMap('map', locations, vi.fn(), vi.fn(), vi.fn());
-        // Check if marker was created
-        // Since we mock L, we can verify calls if we import it or check logic
+        expect(L.marker).toHaveBeenCalledTimes(2);
+        expect(mockClusterGroup.addLayer).toHaveBeenCalledTimes(2);
     });
 
     it('flyToLocation should call map.flyTo', () => {
         const controls = initMap('map', locations, vi.fn(), vi.fn(), vi.fn());
         controls.flyToLocation(123, 456);
-        expect(mockMap.flyTo).toHaveBeenCalledWith([123, 456], 13);
+        expect(mockMap.flyTo).toHaveBeenCalledWith([123, 456], 14, expect.any(Object)); // Updated zoom level to 14
     });
 
     it('updateMapRoute should add routing control', () => {
          const controls = initMap('map', locations, vi.fn(), vi.fn(), vi.fn());
          controls.updateMapRoute([1, 2]);
+         expect(L.Routing.control).toHaveBeenCalled();
     });
 });
