@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- Note: 'unsafe-inline' is required for Leaflet and Vite dev server. In a strict production environment, this should be replaced with a nonce-based strategy. -->
+    <!-- Note: 'unsafe-inline' is required for Leaflet and Vite dev server. -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.tile.openstreetmap.org https://placehold.co; connect-src 'self'">
     <title>Uttarakhand Journey - Plan Your Trip</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Lora:wght@500;700&display=swap" rel="stylesheet">
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#FCFBF9">
+    <meta name="theme-color" content="#FAFAFA">
 </head>
 <body class="overflow-hidden">
 
@@ -22,43 +22,54 @@
                  <i data-feather="compass" width="24" height="24"></i>
              </div>
         </div>
-        <h2 class="mt-6 text-xl font-serif text-text-indigo font-bold tracking-wide">Uttarakhand Journey</h2>
-        <p class="text-sm text-gray-500 mt-2">Preparing your expedition...</p>
+        <h2 class="mt-6 text-xl font-serif text-text-main font-bold tracking-wide">Uttarakhand Journey</h2>
     </div>
 
     <div class="main-layout flex h-screen w-screen relative overflow-hidden">
 
-        <!-- Sidebar -->
-        <aside id="sidebar" class="sidebar absolute md:relative z-20 h-full w-[85vw] md:w-96 flex flex-col shadow-2xl md:shadow-none transform -translate-x-full md:translate-x-0 glass-panel md:glass-panel-none md:bg-white transition-transform duration-300 ease-in-out">
+        <!-- Sidebar / Bottom Sheet -->
+        <!-- Logic: -translate-x-full on desktop hides it left. On mobile CSS overrides this to translateY(100%) down. -->
+        <aside id="sidebar" class="sidebar absolute md:relative z-30 h-full w-full md:w-[400px] flex flex-col shadow-2xl md:shadow-none transform -translate-x-full md:translate-x-0 glass-panel md:glass-panel-none md:bg-white transition-all duration-500 ease-out-expo">
 
-            <!-- Mobile Close Handle -->
-            <button id="mobile-close" class="md:hidden absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-800">
-                <i data-feather="x"></i>
-            </button>
+            <!-- Mobile Drag Handle / Close -->
+            <div class="md:hidden w-full flex justify-center pt-3 pb-1 cursor-pointer" id="mobile-sheet-header">
+                 <div class="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+            </div>
 
-            <div class="p-6 md:p-8 border-b border-gray-100 bg-white/50 md:bg-white backdrop-blur-sm sticky top-0 z-10">
-                <div class="flex items-center gap-3 mb-1">
-                    <div class="w-8 h-8 rounded-full bg-accent-terracotta flex items-center justify-center text-white">
-                        <i data-feather="map" width="16" height="16"></i>
+            <!-- Header -->
+            <div class="px-6 py-4 md:p-8 border-b border-gray-100 bg-white/50 md:bg-white backdrop-blur-sm sticky top-0 z-10">
+                <div class="flex items-center justify-between mb-1">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-accent-terracotta text-white flex items-center justify-center shadow-lg shadow-orange-200">
+                            <i data-feather="map" width="20" height="20"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-serif font-bold text-gray-900 leading-none">Journey</h1>
+                            <p class="text-xs text-accent-terracotta font-medium tracking-wider uppercase mt-1">Land of Gods</p>
+                        </div>
                     </div>
-                    <h1 class="text-2xl font-serif font-bold text-gray-900">Journey</h1>
+                    <!-- Close Button Mobile (optional extra) -->
+                    <button id="sidebar-close-btn" class="md:hidden p-2 text-gray-400 hover:text-gray-800 bg-gray-100 rounded-full">
+                        <i data-feather="x" width="18" height="18"></i>
+                    </button>
                 </div>
-                <p class="text-sm text-gray-500 pl-11">Discover the Land of Gods</p>
 
-                <div id="filter-container" class="mt-6 flex flex-wrap gap-2">
+                <div id="filter-container" class="mt-6 flex gap-3 overflow-x-auto custom-scrollbar pb-2 mask-linear">
                     <!-- Filters injected by JS -->
                 </div>
             </div>
 
-            <div class="flex-1 overflow-y-auto p-4 custom-scrollbar bg-gray-50/50 md:bg-transparent">
-                <div id="location-list" class="pb-20 md:pb-0">
+            <!-- List -->
+            <div class="flex-1 overflow-y-auto p-4 custom-scrollbar bg-gray-50/50 md:bg-transparent" id="locations-scroll-area">
+                <div id="location-list" class="space-y-4 pb-24 md:pb-0">
                     <!-- Locations populated by JS -->
                 </div>
             </div>
 
-            <div id="itinerary-panel" class="border-t border-gray-200 bg-white p-4 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] max-h-[35vh] overflow-y-auto flex-shrink-0 z-20">
-                <h2 class="text-lg font-serif font-bold text-gray-800 mb-3 flex items-center gap-2">
-                    <i data-feather="clipboard" width="18" height="18" class="text-accent-sage"></i>
+            <!-- Itinerary Panel (Bottom of sidebar) -->
+            <div id="itinerary-panel" class="border-t border-gray-100 bg-white p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] max-h-[30vh] overflow-y-auto flex-shrink-0 z-20">
+                <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <i data-feather="clipboard" width="14" height="14"></i>
                     Your Itinerary
                 </h2>
                 <div id="itinerary-list" class="space-y-2">
@@ -69,18 +80,19 @@
 
         <!-- Map Area -->
         <main class="flex-1 relative h-full w-full bg-gray-100">
-            <div id="map" class="outline-none"></div>
+            <div id="map" class="outline-none focus:outline-none"></div>
 
-            <!-- Mobile Toggle Button -->
-            <button id="mobile-toggle" class="absolute top-4 left-4 z-[1000] md:hidden bg-white/90 backdrop-blur-sm p-3 rounded-xl shadow-lg text-gray-700 active:scale-95 transition-transform" aria-label="Open menu">
-                <i data-feather="menu"></i>
+            <!-- Mobile Toggle Button (Floating "Explore") -->
+            <button id="mobile-toggle" class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-[1000] md:hidden bg-accent-navy text-white px-6 py-3 rounded-full shadow-2xl shadow-indigo-900/30 flex items-center gap-2 active:scale-95 transition-all hover:-translate-y-1" aria-label="Explore Locations">
+                <i data-feather="list"></i>
+                <span class="font-medium">Explore</span>
             </button>
         </main>
 
     </div>
 
     <!-- Modal -->
-    <div id="location-modal" class="hidden fixed inset-0 z-[3000] items-center justify-center p-4 backdrop-blur-sm bg-black/20" aria-modal="true" role="dialog">
+    <div id="location-modal" class="hidden fixed inset-0 z-[3000] items-center justify-center p-4" aria-modal="true" role="dialog">
         <!-- Content injected by JS -->
     </div>
 

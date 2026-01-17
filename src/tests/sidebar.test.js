@@ -9,6 +9,9 @@ vi.mock('feather-icons', () => ({
     },
 }));
 
+// Mock scrollIntoView
+Element.prototype.scrollIntoView = vi.fn();
+
 const mockLocations = [
     { id: 1, title: 'Loc 1', type: 'temple', description: 'Desc 1', lat: 10, lng: 10, image: 'img1.jpg' },
     { id: 2, title: 'Loc 2', type: 'adventure', description: 'Desc 2', lat: 20, lng: 20, image: 'img2.jpg' },
@@ -59,7 +62,7 @@ describe('Sidebar Component', () => {
             const onAddClick = vi.fn();
             renderSidebarList(container, mockLocations, [], onLocClick, onAddClick, 'non-existent-type');
 
-            expect(container.textContent).toContain('No locations found');
+            expect(container.textContent).toContain('No destinations found');
         });
 
         it('should handle location click', () => {
@@ -113,11 +116,11 @@ describe('Sidebar Component', () => {
              const itinerary = [mockLocations[0].id];
              renderItineraryList(container, mockLocations, itinerary, onRemoveClick, onClearClick);
 
-             // New implementation uses aria-label or text content?
-             // Logic says: clearBtn.innerHTML = 'Clear All'
-             // And class includes text-red-400
-             const clearBtn = container.querySelector('button.text-red-400');
+             // Look for button with text-red-500 hover color or inner HTML 'Clear'
+             // The implementation has "hover:text-red-500" class
+             const clearBtn = Array.from(container.querySelectorAll('button')).find(b => b.textContent === 'Clear');
              expect(clearBtn).not.toBeNull();
+             expect(clearBtn).toBeDefined();
 
              clearBtn.click();
              expect(onClearClick).toHaveBeenCalled();
@@ -128,7 +131,7 @@ describe('Sidebar Component', () => {
              const onClearClick = vi.fn();
              renderItineraryList(container, mockLocations, [], onRemoveClick, onClearClick);
 
-             expect(container.textContent).toContain('Your trip is empty');
+             expect(container.textContent).toContain('Empty Trip');
         });
     });
 
@@ -164,6 +167,7 @@ describe('Sidebar Component', () => {
 
             expect(container.querySelector('[data-id="1"]').classList.contains('active')).toBe(true);
             expect(container.querySelector('[data-id="2"]').classList.contains('active')).toBe(false);
+            expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
         });
 
         it('should do nothing if container is null', () => {
