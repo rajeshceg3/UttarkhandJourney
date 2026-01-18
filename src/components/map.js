@@ -15,19 +15,24 @@ export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMore
     }
 
     const map = L.map(elementId, {
-        zoomControl: false // We will add it manually to position it better
+        zoomControl: false,
+        attributionControl: false // We can add a smaller one if needed or style the default
     }).setView([30.0668, 79.0193], 8);
 
-    // Custom Zoom Control to top-right
+    L.control.attribution({
+        position: 'bottomright'
+    }).addTo(map);
+
+    // Custom Zoom Control to top-right with margin handled in CSS
     L.control.zoom({
         position: 'topright'
     }).addTo(map);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // Create a marker cluster group
+    // Create a marker cluster group with polished styling
     const markersCluster = L.markerClusterGroup({
         showCoverageOnHover: false,
         spiderfyOnMaxZoom: true,
@@ -38,8 +43,9 @@ export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMore
             let colorClass = 'bg-accent-sage';
             if (count >= 5) colorClass = 'bg-accent-terracotta';
 
+            // Added animate-pulse-slow for a breathing effect
             return L.divIcon({
-                html: `<div class="${colorClass} text-white font-bold rounded-full flex items-center justify-center shadow-lg border-2 border-white transition-transform hover:scale-110" style="width: 44px; height: 44px; font-size: 16px;">${count}</div>`,
+                html: `<div class="${colorClass} text-white font-bold rounded-full flex items-center justify-center shadow-lg border-2 border-white transition-transform hover:scale-110 animate-pulse-slow" style="width: 44px; height: 44px; font-size: 16px;">${count}</div>`,
                 className: 'marker-cluster-custom',
                 iconSize: L.point(44, 44)
             });
@@ -49,28 +55,34 @@ export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMore
     const markers = {};
     let routingControl = null;
 
+    // Helper: Get SVG String for Icons (Reliable)
+    const getIconSVG = (iconName, size = 20, color = 'currentColor', strokeWidth = 2) => {
+        return feather.icons[iconName].toSvg({ width: size, height: size, color: color, 'stroke-width': strokeWidth });
+    };
+
     // Helper: Create Popup Content
     const createPopupContent = (loc) => {
         const div = document.createElement('div');
-        div.className = "flex flex-col overflow-hidden bg-white w-[280px]";
+        // No overflow-hidden on wrapper, we handle rounding via CSS on leaflet-popup-content-wrapper
+        div.className = "flex flex-col w-[280px]";
 
         // Image Section
         const imgContainer = document.createElement('div');
-        imgContainer.className = "relative h-36 w-full";
+        imgContainer.className = "relative h-40 w-full rounded-t-2xl overflow-hidden"; // Rounded top explicitly
 
         const img = document.createElement('img');
         img.src = loc.image;
         img.alt = loc.title;
-        img.className = "w-full h-full object-cover";
+        img.className = "w-full h-full object-cover transform hover:scale-105 transition-transform duration-700";
         img.loading = "lazy";
         imgContainer.appendChild(img);
 
         // Overlay Gradient
         const gradient = document.createElement('div');
-        gradient.className = "absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4";
+        gradient.className = "absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex items-end p-4";
 
         const title = document.createElement('h3');
-        title.className = "text-white font-serif text-lg font-bold leading-tight shadow-black drop-shadow-md";
+        title.className = "text-white font-serif text-xl font-bold leading-tight drop-shadow-md";
         title.textContent = loc.title;
         gradient.appendChild(title);
 
@@ -79,10 +91,10 @@ export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMore
 
         // Content Section
         const contentDiv = document.createElement('div');
-        contentDiv.className = "p-4 flex flex-col gap-3";
+        contentDiv.className = "p-4 flex flex-col gap-3 bg-white/50";
 
         const desc = document.createElement('p');
-        desc.className = "text-sm text-gray-600 line-clamp-2";
+        desc.className = "text-sm text-gray-600 line-clamp-2 leading-relaxed";
         desc.textContent = loc.description;
         contentDiv.appendChild(desc);
 
@@ -94,22 +106,28 @@ export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMore
         const isAdded = currentItinerary.includes(loc.id);
 
         const addBtn = document.createElement('button');
-        addBtn.className = `flex-1 py-2 px-3 rounded-lg font-semibold text-xs transition-colors flex items-center justify-center gap-1 ${isAdded ? 'bg-gray-100 text-accent-sage cursor-default' : 'bg-accent-sage text-white hover:bg-opacity-90 shadow-md hover:shadow-lg'}`;
-        addBtn.disabled = isAdded;
+        // Primary Action
+        const baseBtnClass = "flex-1 py-2.5 px-3 rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md active:scale-95";
 
         if (isAdded) {
-            addBtn.innerHTML = '<span>Added</span> <i data-feather="check" width="14" height="14"></i>';
+            addBtn.className = `${baseBtnClass} bg-gray-100 text-accent-sage cursor-default shadow-none`;
+            addBtn.innerHTML = `<span>Added</span> ${getIconSVG('check', 14)}`;
+            addBtn.disabled = true;
         } else {
-            addBtn.innerHTML = '<span>Add to Trip</span> <i data-feather="plus" width="14" height="14"></i>';
+            addBtn.className = `${baseBtnClass} bg-accent-sage text-white hover:bg-accent-sage-dark`;
+            addBtn.innerHTML = `<span>Add to Trip</span> ${getIconSVG('plus', 14, 'white')}`;
             addBtn.onclick = (e) => {
                 e.stopPropagation();
                 onAddToTrip(loc.id);
+                // Optimistic UI update for button
+                addBtn.className = `${baseBtnClass} bg-gray-100 text-accent-sage cursor-default shadow-none`;
+                addBtn.innerHTML = `<span>Added</span> ${getIconSVG('check', 14)}`;
             };
         }
         btnGroup.appendChild(addBtn);
 
         const infoBtn = document.createElement('button');
-        infoBtn.className = "flex-1 py-2 px-3 rounded-lg font-semibold text-xs bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors shadow-sm hover:shadow-md";
+        infoBtn.className = "flex-1 py-2.5 px-3 rounded-xl font-semibold text-xs bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors shadow-sm hover:shadow-md active:scale-95";
         infoBtn.textContent = "More Info";
         infoBtn.onclick = (e) => {
             e.stopPropagation();
@@ -120,64 +138,54 @@ export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMore
         contentDiv.appendChild(btnGroup);
         div.appendChild(contentDiv);
 
-        // We need to render feathers immediately for the popup HTML string
-        // But since we return a node, we can do it after appending, or try to do it here.
-        // However, feather.replace() works on the DOM.
-        // Leaflet will append this node. We can observe it or just use simple SVGs if feather fails.
-        // Better yet: manual SVG injection for popup to ensure reliability without needing to call feather.replace again.
-        // Actually, let's keep it simple. The parent caller or main loop might not re-scan popup content.
-        // We will manually inject SVG string for reliability.
-
         return div;
     };
 
-    // Helper: Get SVG String for Icons
-    const getIconSVG = (type) => {
-        // We could use feather.icons[name].toSvg()
-        const map = {
+    const getPinSVG = (type) => {
+        const iconMap = {
             'city': 'map-pin',
             'pilgrimage': 'sunrise',
             'hill-station': 'cloud',
             'park': 'compass'
         };
-        const iconName = map[type] || 'map-pin';
-        return feather.icons[iconName].toSvg({ width: 20, height: 20, color: '#E07A5F', 'stroke-width': 2.5 });
+        return getIconSVG(iconMap[type] || 'map-pin', 18, '#E76F51', 2.5);
     };
 
     // Add Markers
     locations.forEach(loc => {
-        const svgString = getIconSVG(loc.type);
+        const svgString = getPinSVG(loc.type);
 
-        // Custom Pin Style
+        // Custom Pin Style - Polished
         const iconHtml = `
-            <div class="relative w-10 h-10 flex items-center justify-center group">
-                <div class="absolute inset-0 bg-white rounded-full shadow-md transform group-hover:scale-110 transition-transform duration-200 border-2 border-white"></div>
-                <div class="relative z-10 text-accent-terracotta transform group-hover:-translate-y-1 transition-transform duration-200">
+            <div class="relative w-12 h-12 flex items-center justify-center group cursor-pointer">
+                <!-- Outer Ring Pulse (CSS) -->
+                <div class="absolute inset-0 bg-white/30 rounded-full animate-pulse-slow"></div>
+                <!-- Main Circle -->
+                <div class="absolute inset-1 bg-white rounded-full shadow-lg transform group-hover:scale-110 transition-transform duration-300 border-[3px] border-white flex items-center justify-center z-10">
                     ${svgString}
                 </div>
-                <div class="absolute -bottom-1 w-2 h-2 bg-white transform rotate-45 shadow-sm"></div>
+                <!-- Tip -->
+                <div class="absolute -bottom-1 w-3 h-3 bg-white transform rotate-45 shadow-sm z-0"></div>
             </div>
         `;
 
         const customIcon = L.divIcon({
             html: iconHtml,
             className: '', // Remove default styles
-            iconSize: [40, 40],
-            iconAnchor: [20, 44], // Tip of the pin
-            popupAnchor: [0, -48]
+            iconSize: [48, 48],
+            iconAnchor: [24, 52], // Tip of the pin (adjusted for larger size)
+            popupAnchor: [0, -50]
         });
 
         const marker = L.marker([loc.lat, loc.lng], { icon: customIcon });
 
-        // Bind popup content with feather icon handling
-        marker.bindPopup(() => {
-            const node = createPopupContent(loc);
-            // Little hack to render icons inside the node before it's attached
-            // But since feather works on DOM, we might need a small delay or use raw SVG strings in createPopupContent too
-            // Let's use raw SVG strings in createPopupContent for buttons to be safe
-            setTimeout(() => feather.replace(), 0);
-            return node;
-        }, { closeButton: false, offset: [0, 0], maxWidth: 300, minWidth: 280 });
+        marker.bindPopup(() => createPopupContent(loc), {
+            closeButton: false,
+            offset: [0, 10],
+            maxWidth: 300,
+            minWidth: 280,
+            className: 'glass-popup' // We can target this if needed, but wrapper covers most
+        });
 
         marker.on('click', () => {
             onMarkerClick(loc.id);
@@ -194,7 +202,8 @@ export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMore
         if (map) {
             map.flyTo([lat, lng], 14, {
                 animate: true,
-                duration: 1.5
+                duration: 1.5,
+                easeLinearity: 0.25
             });
         }
     };
@@ -227,16 +236,17 @@ export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMore
             showAlternatives: false,
             fitSelectedRoutes: true,
             lineOptions: {
-                styles: [{ color: '#E07A5F', opacity: 0.8, weight: 5, dashArray: '10, 10' }]
+                styles: [
+                    { className: 'route-shadow', color: 'white', opacity: 0.8, weight: 6 },
+                    { className: 'route-line', color: '#E76F51', opacity: 1, weight: 4, dashArray: '10, 12' }
+                ],
+                extendToWaypoints: true,
+                missingRouteTolerance: 10
             },
             createMarker: () => null,
-            addWaypoints: false, // Disable adding via map
+            addWaypoints: false,
             draggableWaypoints: false
         }).addTo(map);
-
-        // Hide the itinerary instructions container that LRM creates by default
-        // We only want the line on the map
-        // LRM adds a control container, we can hide it via CSS or here
     };
 
     return {

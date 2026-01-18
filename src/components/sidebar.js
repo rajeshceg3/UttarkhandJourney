@@ -8,11 +8,14 @@ export const renderFilters = (container, locations, onFilterChange) => {
 
     types.forEach(type => {
         const btn = document.createElement('button');
-        btn.className = `filter-btn whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold tracking-wide uppercase transition-all duration-300 border border-transparent bg-gray-50 text-gray-400 hover:bg-white hover:text-accent-navy hover:shadow-md ${type === 'all' ? 'active' : ''}`;
-        if (type === 'all') {
-            btn.classList.add('bg-accent-navy', 'text-white', 'shadow-md');
-            btn.classList.remove('bg-gray-50', 'text-gray-400');
-        }
+        // Polished Pill Style
+        const isActive = type === 'all';
+        const baseClass = "filter-btn whitespace-nowrap px-5 py-2.5 rounded-2xl text-xs font-bold tracking-wider uppercase transition-all duration-300 border border-transparent";
+        const activeClass = "bg-accent-navy text-white shadow-lg shadow-indigo-200 scale-105";
+        const inactiveClass = "bg-white/50 text-gray-500 hover:bg-white hover:text-accent-terracotta hover:shadow-md";
+
+        btn.className = `${baseClass} ${isActive ? activeClass : inactiveClass}`;
+
         btn.dataset.type = type;
         btn.ariaLabel = `Filter by ${type}`;
         btn.textContent = type.replace('-', ' ');
@@ -21,11 +24,9 @@ export const renderFilters = (container, locations, onFilterChange) => {
             const clickedBtn = e.target.closest('.filter-btn');
             if (clickedBtn) {
                  container.querySelectorAll('.filter-btn').forEach(b => {
-                    b.classList.remove('active', 'bg-accent-navy', 'text-white', 'shadow-md');
-                    b.classList.add('bg-gray-50', 'text-gray-400');
+                    b.className = `${baseClass} ${inactiveClass}`;
                  });
-                 clickedBtn.classList.add('active', 'bg-accent-navy', 'text-white', 'shadow-md');
-                 clickedBtn.classList.remove('bg-gray-50', 'text-gray-400');
+                 clickedBtn.className = `${baseClass} ${activeClass}`;
                  onFilterChange(clickedBtn.dataset.type);
             }
         });
@@ -43,18 +44,22 @@ export const renderSidebarList = (container, locations, itineraryIds, onLocClick
 
     if (filteredLocations.length === 0) {
         const emptyState = document.createElement('div');
-        emptyState.className = 'flex flex-col items-center justify-center py-12 text-gray-400 animate-fade-in';
+        emptyState.className = 'flex flex-col items-center justify-center py-16 text-gray-300 animate-fade-in text-center px-6';
+
+        const iconContainer = document.createElement('div');
+        iconContainer.className = "mb-4 w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center";
 
         const icon = document.createElement('i');
         icon.dataset.feather = "map";
-        icon.className = "mb-4 text-gray-200";
-        icon.setAttribute('width', '56');
-        icon.setAttribute('height', '56');
-        emptyState.appendChild(icon);
+        icon.className = "text-gray-300";
+        icon.setAttribute('width', '24');
+        icon.setAttribute('height', '24');
+        iconContainer.appendChild(icon);
+        emptyState.appendChild(iconContainer);
 
         const text = document.createElement('p');
-        text.className = "text-base font-medium";
-        text.textContent = 'No destinations found.';
+        text.className = "text-sm font-medium text-gray-500";
+        text.textContent = 'No destinations match your filter.';
         emptyState.appendChild(text);
 
         container.appendChild(emptyState);
@@ -64,13 +69,14 @@ export const renderSidebarList = (container, locations, itineraryIds, onLocClick
 
     filteredLocations.forEach((loc, index) => {
         const item = document.createElement('div');
-        item.className = 'location-item group relative p-3 rounded-2xl cursor-pointer bg-white mb-4 flex gap-4 overflow-hidden';
+        // Glass-like card
+        item.className = 'location-item group relative p-4 rounded-3xl cursor-pointer bg-white mb-5 flex flex-col md:flex-row gap-5 overflow-hidden transition-all duration-300 border border-transparent hover:border-accent-terracotta/20';
         item.dataset.id = loc.id;
-        item.style.setProperty('--delay', `${index * 50}ms`);
+        item.style.setProperty('--delay', `${index * 60}ms`);
 
         // Thumbnail Image
         const imgContainer = document.createElement('div');
-        imgContainer.className = "w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden bg-gray-100 relative shadow-sm";
+        imgContainer.className = "w-full md:w-28 h-40 md:h-28 flex-shrink-0 rounded-2xl overflow-hidden bg-gray-100 relative shadow-sm";
 
         const img = document.createElement('img');
         img.src = loc.image;
@@ -92,32 +98,41 @@ export const renderSidebarList = (container, locations, itineraryIds, onLocClick
 
         // Content
         const contentDiv = document.createElement('div');
-        contentDiv.className = "flex-1 min-w-0 flex flex-col justify-center py-1";
+        contentDiv.className = "flex-1 min-w-0 flex flex-col justify-center";
+
+        const headerRow = document.createElement('div');
+        headerRow.className = "flex justify-between items-start mb-1";
 
         const title = document.createElement('h3');
-        title.className = 'font-serif font-bold text-lg text-gray-800 leading-tight mb-1 truncate group-hover:text-accent-terracotta transition-colors';
+        title.className = 'font-serif font-bold text-xl text-gray-800 leading-tight group-hover:text-accent-terracotta transition-colors text-balance';
         title.textContent = loc.title;
-        contentDiv.appendChild(title);
+        headerRow.appendChild(title);
+
+        contentDiv.appendChild(headerRow);
 
         const type = document.createElement('span');
-        type.className = "text-[10px] text-accent-sage-dark font-bold uppercase tracking-widest mb-2 block";
+        type.className = "text-[10px] text-accent-sage-dark font-bold uppercase tracking-widest mb-3 block";
         type.textContent = loc.type.replace('-', ' ');
         contentDiv.appendChild(type);
 
         const desc = document.createElement('p');
-        desc.className = 'text-xs text-gray-500 line-clamp-2 leading-relaxed';
+        desc.className = 'text-xs text-gray-500 line-clamp-2 leading-relaxed text-pretty';
         desc.textContent = loc.description;
         contentDiv.appendChild(desc);
 
         item.appendChild(contentDiv);
 
-        // Action Button (Floating/Integrated)
+        // Action Button (Floating on Mobile, Integrated on Desktop)
         const isAdded = itineraryIds.includes(loc.id);
         const actionBtn = document.createElement('button');
 
         // Polished Button
-        actionBtn.className = `w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 shadow-sm ${isAdded ? 'bg-accent-sage text-white shadow-md cursor-default' : 'bg-gray-50 text-gray-400 hover:bg-accent-terracotta hover:text-white hover:shadow-lg hover:scale-110'}`;
+        const btnBase = "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 shadow-sm flex-shrink-0 absolute bottom-4 right-4 md:static md:w-10 md:h-10 md:self-center";
+        const btnState = isAdded
+            ? "bg-accent-sage text-white shadow-md cursor-default"
+            : "bg-gray-50 text-gray-400 hover:bg-accent-terracotta hover:text-white hover:shadow-lg hover:scale-110";
 
+        actionBtn.className = `${btnBase} ${btnState}`;
         actionBtn.dataset.addId = loc.id;
         actionBtn.ariaLabel = isAdded ? `Added` : `Add to trip`;
         actionBtn.disabled = isAdded;
@@ -128,10 +143,7 @@ export const renderSidebarList = (container, locations, itineraryIds, onLocClick
         icon.setAttribute('height', '20');
         actionBtn.appendChild(icon);
 
-        const actionDiv = document.createElement('div');
-        actionDiv.className = "flex flex-col items-center justify-center pl-1";
-        actionDiv.appendChild(actionBtn);
-        item.appendChild(actionDiv);
+        item.appendChild(actionBtn);
 
         // Events
         item.addEventListener('click', (e) => {
@@ -168,7 +180,7 @@ export const renderItineraryList = (container, locations, itineraryIds, onRemove
 
         const text = document.createElement('p');
         text.className = "text-xs font-medium uppercase tracking-wide";
-        text.textContent = 'Empty Trip';
+        text.textContent = 'Start planning your trip';
         emptyState.appendChild(text);
 
         container.appendChild(emptyState);
@@ -176,19 +188,27 @@ export const renderItineraryList = (container, locations, itineraryIds, onRemove
         return;
     }
 
-    // Header with Clear All
+    // Header
     if (itineraryIds.length > 0 && onClearClick) {
         const headerDiv = document.createElement('div');
-        headerDiv.className = "flex justify-between items-center mb-4 px-1";
+        headerDiv.className = "flex justify-between items-end mb-6 px-1";
 
-        const countSpan = document.createElement('span');
-        countSpan.className = "text-[10px] font-bold text-gray-400 uppercase tracking-widest";
-        countSpan.textContent = `${itineraryIds.length} stops`;
-        headerDiv.appendChild(countSpan);
+        const titleDiv = document.createElement('div');
+        const tinyLabel = document.createElement('p');
+        tinyLabel.className = "text-[10px] uppercase tracking-widest text-gray-400 font-bold";
+        tinyLabel.textContent = "Your Journey";
+        titleDiv.appendChild(tinyLabel);
+
+        const countSpan = document.createElement('h4');
+        countSpan.className = "text-lg font-serif font-bold text-accent-navy";
+        countSpan.textContent = `${itineraryIds.length} Stops`;
+        titleDiv.appendChild(countSpan);
+
+        headerDiv.appendChild(titleDiv);
 
         const clearBtn = document.createElement('button');
-        clearBtn.className = "text-[10px] text-gray-400 hover:text-red-500 font-bold uppercase tracking-wide transition-colors flex items-center gap-1";
-        clearBtn.innerHTML = 'Clear';
+        clearBtn.className = "text-[10px] text-gray-400 hover:text-red-500 font-bold uppercase tracking-wide transition-colors px-2 py-1 hover:bg-red-50 rounded-lg";
+        clearBtn.textContent = 'Clear All';
         clearBtn.onclick = onClearClick;
         headerDiv.appendChild(clearBtn);
 
@@ -196,32 +216,53 @@ export const renderItineraryList = (container, locations, itineraryIds, onRemove
     }
 
     const listContainer = document.createElement('div');
-    listContainer.className = "space-y-3";
+    listContainer.className = "space-y-0 relative"; // Changed for timeline
+
+    // Timeline Line
+    const timeline = document.createElement('div');
+    timeline.className = "absolute left-[19px] top-4 bottom-4 w-0.5 bg-gray-100 z-0";
+    if (itineraryIds.length > 1) {
+        listContainer.appendChild(timeline);
+    }
 
     itineraryIds.forEach((id, index) => {
         const loc = locations.find(l => l.id === id);
         if (!loc) return;
 
         const item = document.createElement('div');
-        item.className = 'itinerary-item p-3 pr-2 rounded-xl flex gap-3 items-center bg-white shadow-sm border border-gray-100 group transition-transform hover:translate-x-1';
+        item.className = 'itinerary-item relative z-10 p-2 pl-0 flex gap-4 items-center group';
 
         // Number badge
         const badge = document.createElement('div');
-        badge.className = "w-6 h-6 rounded-full bg-accent-navy text-white flex items-center justify-center text-[10px] font-bold shadow-md ring-2 ring-white";
+        badge.className = "w-10 h-10 flex-shrink-0 rounded-full bg-white border-2 border-gray-100 text-gray-400 flex items-center justify-center text-xs font-bold shadow-sm group-hover:border-accent-terracotta group-hover:text-accent-terracotta transition-colors";
         badge.textContent = index + 1;
         item.appendChild(badge);
 
+        // Card
+        const card = document.createElement('div');
+        card.className = "flex-1 p-3 rounded-xl bg-gray-50 group-hover:bg-white border border-transparent group-hover:border-gray-100 group-hover:shadow-md transition-all duration-300 flex items-center justify-between";
+
+        const info = document.createElement('div');
+        info.className = "flex flex-col";
+
         const titleSpan = document.createElement('span');
-        titleSpan.className = 'font-medium text-sm text-gray-700 flex-1 truncate font-serif';
+        titleSpan.className = 'font-bold text-sm text-gray-700 font-serif';
         titleSpan.textContent = loc.title;
-        item.appendChild(titleSpan);
+        info.appendChild(titleSpan);
+
+        const typeSpan = document.createElement('span');
+        typeSpan.className = "text-[10px] text-gray-400 uppercase tracking-wider";
+        typeSpan.textContent = loc.type;
+        info.appendChild(typeSpan);
+
+        card.appendChild(info);
 
         const removeBtn = document.createElement('button');
-        removeBtn.className = 'w-7 h-7 rounded-full flex items-center justify-center text-gray-300 hover:text-white hover:bg-red-500 transition-all duration-200';
+        removeBtn.className = 'w-8 h-8 rounded-full flex items-center justify-center text-gray-300 hover:text-white hover:bg-red-500 transition-all duration-200 opacity-0 group-hover:opacity-100 focus:opacity-100';
         removeBtn.ariaLabel = `Remove ${loc.title}`;
 
         const icon = document.createElement('i');
-        icon.dataset.feather = "x";
+        icon.dataset.feather = "trash-2";
         icon.setAttribute('width', '14');
         icon.setAttribute('height', '14');
         removeBtn.appendChild(icon);
@@ -231,7 +272,8 @@ export const renderItineraryList = (container, locations, itineraryIds, onRemove
             onRemoveClick(id);
         });
 
-        item.appendChild(removeBtn);
+        card.appendChild(removeBtn);
+        item.appendChild(card);
         listContainer.appendChild(item);
     });
 
@@ -241,8 +283,7 @@ export const renderItineraryList = (container, locations, itineraryIds, onRemove
 export const updateActiveLocation = (container, id) => {
     if (!container) return;
     container.querySelectorAll('.location-item').forEach(el => {
-        el.classList.remove('active');
-        el.classList.remove('ring-2', 'ring-accent-sage', 'ring-offset-2');
+        el.classList.remove('active', 'ring-2', 'ring-accent-sage', 'ring-offset-2');
     });
     const activeEl = container.querySelector(`.location-item[data-id="${id}"]`);
     if (activeEl) {
