@@ -49,7 +49,8 @@ vi.mock('leaflet', () => {
             latLng: vi.fn(),
             markerClusterGroup: vi.fn(() => mockClusterGroup),
             control: {
-                zoom: vi.fn(() => mockControlZoom)
+                zoom: vi.fn(() => mockControlZoom),
+                attribution: vi.fn(() => ({ addTo: vi.fn() }))
             },
             Routing: {
                 control: vi.fn(() => mockRoutingControl)
@@ -80,6 +81,7 @@ describe('Map Component', () => {
         const controls = initMap('map', locations, vi.fn(), vi.fn(), vi.fn());
         expect(controls).not.toBeNull();
         expect(L.control.zoom).toHaveBeenCalled(); // Updated to check custom zoom control
+        expect(L.control.attribution).toHaveBeenCalled();
     });
 
     it('should add markers for each location', () => {

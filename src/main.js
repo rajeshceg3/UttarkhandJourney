@@ -27,6 +27,37 @@ const init = () => {
 
     let mapControls = null;
 
+    // Toast Styles
+    const toastStyleSuccess = {
+        background: "rgba(42, 157, 143, 0.9)",
+        backdropFilter: "blur(10px)",
+        boxShadow: "0 10px 30px -10px rgba(42, 157, 143, 0.5)",
+        border: "1px solid rgba(255, 255, 255, 0.2)",
+        color: "white",
+        borderRadius: "16px",
+        fontWeight: "600"
+    };
+
+    const toastStyleError = {
+        background: "rgba(231, 111, 81, 0.9)",
+        backdropFilter: "blur(10px)",
+        boxShadow: "0 10px 30px -10px rgba(231, 111, 81, 0.5)",
+        border: "1px solid rgba(255, 255, 255, 0.2)",
+        color: "white",
+        borderRadius: "16px",
+        fontWeight: "600"
+    };
+
+    const toastStyleInfo = {
+        background: "rgba(38, 70, 83, 0.9)",
+        backdropFilter: "blur(10px)",
+        boxShadow: "0 10px 30px -10px rgba(38, 70, 83, 0.5)",
+        border: "1px solid rgba(255, 255, 255, 0.2)",
+        color: "white",
+        borderRadius: "16px",
+        fontWeight: "600"
+    };
+
     // Logic
     const handleFilterChange = (type) => {
         currentFilter = type;
@@ -38,15 +69,15 @@ const init = () => {
             itinerary.push(id);
             saveItinerary(itinerary);
             updateUI();
+
             const toast = Toastify({
-                text: "Added to trip!",
+                text: "Trip Updated!",
                 duration: 4000,
-                gravity: "top", // Top for better visibility on desktop/mobile mixed use
+                gravity: "top",
                 position: "center",
-                backgroundColor: "#81B29A",
+                style: toastStyleSuccess,
                 stopOnFocus: true,
                 close: true,
-                className: "glass-dark rounded-lg shadow-lg font-medium",
                 onClick: function() {
                     toast.hideToast();
                     // Undo logic
@@ -58,8 +89,7 @@ const init = () => {
                         duration: 2000,
                         gravity: "top",
                         position: "center",
-                        backgroundColor: "#E07A5F",
-                        className: "glass-dark rounded-lg shadow-lg",
+                        style: toastStyleInfo,
                     }).showToast();
                 }
             });
@@ -70,8 +100,7 @@ const init = () => {
                 duration: 3000,
                 gravity: "top",
                 position: "center",
-                backgroundColor: "#E07A5F",
-                className: "glass-dark rounded-lg shadow-lg",
+                style: toastStyleError,
             }).showToast();
         }
     };
@@ -87,10 +116,9 @@ const init = () => {
             duration: 4000,
             gravity: "top",
             position: "center",
-            backgroundColor: "#E07A5F",
+            style: toastStyleError,
             stopOnFocus: true,
             close: true,
-            className: "glass-dark rounded-lg shadow-lg",
             onClick: function() {
                 toast.hideToast();
                 if (!itinerary.includes(itemToRestore)) {
@@ -102,8 +130,7 @@ const init = () => {
                         duration: 2000,
                         gravity: "top",
                         position: "center",
-                        backgroundColor: "#81B29A",
-                        className: "glass-dark rounded-lg shadow-lg",
+                        style: toastStyleSuccess,
                     }).showToast();
                 }
             }
@@ -125,10 +152,9 @@ const init = () => {
                     duration: 4000,
                     gravity: "top",
                     position: "center",
-                    backgroundColor: "#E07A5F",
+                    style: toastStyleInfo,
                     stopOnFocus: true,
                     close: true,
-                    className: "glass-dark rounded-lg shadow-lg",
                     onClick: function() {
                         toast.hideToast();
                         if (itinerary.length === 0) {
@@ -140,8 +166,7 @@ const init = () => {
                                 duration: 2000,
                                 gravity: "top",
                                 position: "center",
-                                backgroundColor: "#81B29A",
-                                className: "glass-dark rounded-lg shadow-lg",
+                                style: toastStyleSuccess,
                             }).showToast();
                         }
                     }
@@ -228,15 +253,15 @@ const init = () => {
 
     feather.replace();
 
-    // Remove loading overlay
+    // Remove loading overlay with a smooth fade
     const loadingOverlay = document.getElementById('loading-overlay');
     if (loadingOverlay) {
         setTimeout(() => {
             loadingOverlay.classList.add('opacity-0');
             setTimeout(() => {
                 loadingOverlay.remove();
-            }, 500);
-        }, 800); // Slight delay to show off the loader
+            }, 600);
+        }, 800);
     }
 };
 

@@ -62,7 +62,7 @@ describe('Sidebar Component', () => {
             const onAddClick = vi.fn();
             renderSidebarList(container, mockLocations, [], onLocClick, onAddClick, 'non-existent-type');
 
-            expect(container.textContent).toContain('No destinations found');
+            expect(container.textContent).toContain('No destinations match your filter');
         });
 
         it('should handle location click', () => {
@@ -118,7 +118,7 @@ describe('Sidebar Component', () => {
 
              // Look for button with text-red-500 hover color or inner HTML 'Clear'
              // The implementation has "hover:text-red-500" class
-             const clearBtn = Array.from(container.querySelectorAll('button')).find(b => b.textContent === 'Clear');
+             const clearBtn = Array.from(container.querySelectorAll('button')).find(b => b.textContent === 'Clear All');
              expect(clearBtn).not.toBeNull();
              expect(clearBtn).toBeDefined();
 
@@ -131,7 +131,7 @@ describe('Sidebar Component', () => {
              const onClearClick = vi.fn();
              renderItineraryList(container, mockLocations, [], onRemoveClick, onClearClick);
 
-             expect(container.textContent).toContain('Empty Trip');
+             expect(container.textContent).toContain('Start planning your trip');
         });
     });
 
