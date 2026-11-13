@@ -5,6 +5,7 @@ import L from 'leaflet'; // Import mocked L to access spies
 // Mock Leaflet
 const mockMap = {
     setView: vi.fn().mockReturnThis(),
+    attributionControl: { addAttribution: vi.fn() },
     flyTo: vi.fn(),
     removeControl: vi.fn(),
     addControl: vi.fn(),
@@ -36,6 +37,11 @@ const mockClusterGroup = {
 const mockControlZoom = {
     addTo: vi.fn(),
 };
+
+// Mock the MapLibre GL Leaflet bridge (warm paper basemap layer)
+vi.mock('@maplibre/maplibre-gl-leaflet', () => ({
+    maplibreGL: vi.fn(() => ({ addTo: vi.fn() }))
+}));
 
 vi.mock('leaflet', () => {
     return {

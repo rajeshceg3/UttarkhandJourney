@@ -1,5 +1,8 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { maplibreGL } from '@maplibre/maplibre-gl-leaflet';
+import 'maplibre-gl/dist/maplibre-gl.css';
+import warmMapStyle from '../vendor/warm-map/style.json';
 import 'leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
@@ -16,6 +19,7 @@ export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMore
 
     const map = L.map(elementId, {
         zoomControl: false,
+        maxZoom: 18, // Explicit cap: markercluster + the MapLibre GL bridge misbehave without it
         attributionControl: false // We can add a smaller one if needed or style the default
     }).setView([30.0668, 79.0193], 8);
 
@@ -28,9 +32,10 @@ export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMore
         position: 'topright'
     }).addTo(map);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+    // Warm paper basemap (worlds shared module): OpenFreeMap vector tiles,
+    // custom watercolor-wash style. Free public instance, no API key.
+    maplibreGL({ style: warmMapStyle }).addTo(map);
+    map.attributionControl.addAttribution('<a href="https://openfreemap.org" target="_blank">OpenFreeMap</a> <a href="https://www.openmaptiles.org/" target="_blank">&copy; OpenMapTiles</a> Data from <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>');
 
     // Create a marker cluster group with polished styling
     const markersCluster = L.markerClusterGroup({
