@@ -17,7 +17,7 @@ const init = () => {
     const filterContainerEl = document.getElementById('filter-container');
     const itineraryListEl = document.getElementById('itinerary-list');
     const mobileToggleBtn = document.getElementById('mobile-toggle');
-    const mobileCloseBtn = document.getElementById('mobile-close');
+    const mobileCloseBtn = document.getElementById('sidebar-close-btn');
     const sidebarEl = document.getElementById('sidebar');
 
     if (!sidebarListEl || !filterContainerEl || !itineraryListEl) {
@@ -182,7 +182,7 @@ const init = () => {
             mapControls.openMarkerPopup(loc.id);
         }
         updateActiveLocation(sidebarListEl, loc.id);
-        if (window.innerWidth < 768 && sidebarEl) {
+        if (sidebarEl) {
             toggleSidebar(sidebarEl, false);
         }
     };
@@ -228,6 +228,23 @@ const init = () => {
         console.error("Failed to initialize sidebar:", error);
     }
 
+    ['zoom-in','zoom-out','reset-map'].forEach(id => document.getElementById(id)?.addEventListener('click',()=>{
+        const map=mapControls?.mapInstance;
+        if(!map)return;
+        if(id==='zoom-in')map.zoomIn(undefined,{animate:false});
+        if(id==='zoom-out')map.zoomOut(undefined,{animate:false});
+        if(id==='reset-map')map.setView([30.0668,79.0193],8,{animate:false});
+    }));
+    document.addEventListener('keydown',e=>{
+        if(!sidebarEl||sidebarEl.inert)return;
+        if(e.key==='Escape')toggleSidebar(sidebarEl,false);
+        if(e.key==='Tab'){
+            const nodes=[...sidebarEl.querySelectorAll('button:not(:disabled),[tabindex="0"]')].filter(el=>el.offsetParent!==null);
+            const first=nodes[0],last=nodes.at(-1);
+            if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus()}
+            else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus()}
+        }
+    });
     // Event Listeners
     if (mobileToggleBtn) {
         mobileToggleBtn.addEventListener('click', () => {

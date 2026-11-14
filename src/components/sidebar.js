@@ -17,6 +17,7 @@ export const renderFilters = (container, locations, onFilterChange) => {
         btn.className = `${baseClass} ${isActive ? activeClass : inactiveClass}`;
 
         btn.dataset.type = type;
+        btn.setAttribute('aria-pressed',String(isActive));
         btn.ariaLabel = `Filter by ${type}`;
         btn.textContent = type.replace('-', ' ');
 
@@ -24,9 +25,9 @@ export const renderFilters = (container, locations, onFilterChange) => {
             const clickedBtn = e.target.closest('.filter-btn');
             if (clickedBtn) {
                  container.querySelectorAll('.filter-btn').forEach(b => {
-                    b.className = `${baseClass} ${inactiveClass}`;
+                    b.className = `${baseClass} ${inactiveClass}`;b.setAttribute('aria-pressed','false');
                  });
-                 clickedBtn.className = `${baseClass} ${activeClass}`;
+                 clickedBtn.className = `${baseClass} ${activeClass}`;clickedBtn.setAttribute('aria-pressed','true');
                  onFilterChange(clickedBtn.dataset.type);
             }
         });
@@ -72,6 +73,8 @@ export const renderSidebarList = (container, locations, itineraryIds, onLocClick
         // Glass-like card
         item.className = 'location-item group relative p-4 rounded-3xl cursor-pointer bg-white mb-5 flex flex-col md:flex-row gap-5 overflow-hidden transition-all duration-300 border border-transparent hover:border-accent-terracotta/20';
         item.dataset.id = loc.id;
+        item.tabIndex=0;item.setAttribute('role','button');item.setAttribute('aria-label',`View ${loc.title}`);
+        item.addEventListener('keydown',e=>{if(e.target===item&&(e.key==='Enter'||e.key===' ')){e.preventDefault();onLocClick(loc)}});
         item.style.setProperty('--delay', `${index * 60}ms`);
 
         // Thumbnail Image
@@ -288,17 +291,21 @@ export const updateActiveLocation = (container, id) => {
     const activeEl = container.querySelector(`.location-item[data-id="${id}"]`);
     if (activeEl) {
         activeEl.classList.add('active');
-        activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        activeEl.scrollIntoView({ behavior: 'auto', block: 'center' });
     }
 };
 
 export const toggleSidebar = (sidebarEl, isOpen) => {
     if (!sidebarEl) return;
+    sidebarEl.inert = !isOpen;
+    document.getElementById('mobile-toggle')?.setAttribute('aria-expanded',String(isOpen));
     if (isOpen) {
         sidebarEl.classList.add('translate-x-0');
         sidebarEl.classList.remove('-translate-x-full');
+        document.getElementById('sidebar-close-btn')?.focus();
     } else {
         sidebarEl.classList.remove('translate-x-0');
         sidebarEl.classList.add('-translate-x-full');
+        document.getElementById('mobile-toggle')?.focus();
     }
 };

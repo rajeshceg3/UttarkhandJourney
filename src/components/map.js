@@ -1,4 +1,7 @@
 import L from 'leaflet';
+import { setWorkerUrl } from 'maplibre-gl';
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
+setWorkerUrl(workerUrl);
 import 'leaflet/dist/leaflet.css';
 import { maplibreGL } from '@maplibre/maplibre-gl-leaflet';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -19,6 +22,9 @@ export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMore
 
     const map = L.map(elementId, {
         zoomControl: false,
+        fadeAnimation: false,
+        zoomAnimation: false,
+        markerZoomAnimation: false,
         maxZoom: 18, // Explicit cap: markercluster + the MapLibre GL bridge misbehave without it
         attributionControl: false // We can add a smaller one if needed or style the default
     }).setView([30.0668, 79.0193], 8);
@@ -27,18 +33,16 @@ export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMore
         position: 'bottomright'
     }).addTo(map);
 
-    // Custom Zoom Control to top-right with margin handled in CSS
-    L.control.zoom({
-        position: 'topright'
-    }).addTo(map);
-
     // Warm paper basemap (worlds shared module): OpenFreeMap vector tiles,
     // custom watercolor-wash style. Free public instance, no API key.
-    maplibreGL({ style: warmMapStyle }).addTo(map);
+    const basemap = maplibreGL({ style: warmMapStyle });
+    basemap.addTo(map);
+    mapElement._warmMap = basemap.getMaplibreMap?.();
     map.attributionControl.addAttribution('<a href="https://openfreemap.org" target="_blank">OpenFreeMap</a> <a href="https://www.openmaptiles.org/" target="_blank">&copy; OpenMapTiles</a> Data from <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>');
 
     // Create a marker cluster group with polished styling
     const markersCluster = L.markerClusterGroup({
+        animate: false,
         showCoverageOnHover: false,
         spiderfyOnMaxZoom: true,
         removeOutsideVisibleBounds: true,
@@ -185,10 +189,12 @@ export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMore
         const marker = L.marker([loc.lat, loc.lng], { icon: customIcon });
 
         marker.bindPopup(() => createPopupContent(loc), {
-            closeButton: false,
+            closeButton: true,
             offset: [0, 10],
-            maxWidth: 300,
-            minWidth: 280,
+            autoPanPaddingTopLeft: [24, 24],
+            autoPanPaddingBottomRight: [24, 90],
+            maxWidth: Math.min(300, window.innerWidth - 48),
+            minWidth: Math.min(280, window.innerWidth - 48),
             className: 'glass-popup' // We can target this if needed, but wrapper covers most
         });
 
@@ -206,7 +212,7 @@ export const initMap = (elementId, locations, onMarkerClick, onAddToTrip, onMore
     const flyToLocation = (lat, lng) => {
         if (map) {
             map.flyTo([lat, lng], 14, {
-                animate: true,
+                animate: false,
                 duration: 1.5,
                 easeLinearity: 0.25
             });

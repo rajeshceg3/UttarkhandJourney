@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Note: 'unsafe-inline' is required for Leaflet and Vite dev server. -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://placehold.co; connect-src 'self' https://tiles.openfreemap.org; worker-src 'self' blob:">
     <title>Uttarakhand Journey - Plan Your Trip</title>
@@ -29,7 +29,7 @@
 
         <!-- Sidebar / Bottom Sheet -->
         <!-- Logic: -translate-x-full on desktop hides it left. On mobile CSS overrides this to translateY(100%) down. -->
-        <aside id="sidebar" class="sidebar absolute md:relative z-30 h-full w-full md:w-[400px] flex flex-col shadow-2xl md:shadow-none transform -translate-x-full md:translate-x-0 glass-panel md:glass-panel-none md:bg-white transition-all duration-500 ease-out-expo">
+        <aside id="sidebar" role="dialog" aria-modal="true" aria-label="Explore Uttarakhand" inert class="sidebar absolute md:relative z-30 h-full w-full md:w-[400px] flex flex-col shadow-2xl md:shadow-none transform -translate-x-full md:translate-x-0 glass-panel md:glass-panel-none md:bg-white transition-all duration-500 ease-out-expo">
 
             <!-- Mobile Drag Handle / Close -->
             <div class="md:hidden w-full flex justify-center pt-3 pb-1 cursor-pointer" id="mobile-sheet-header">
@@ -45,16 +45,16 @@
                         </div>
                         <div>
                             <h1 class="text-2xl font-serif font-bold text-gray-900 leading-none">Journey</h1>
-                            <p class="text-xs text-accent-terracotta font-medium tracking-wider uppercase mt-1">Land of Gods</p>
+                            
                         </div>
                     </div>
                     <!-- Close Button Mobile (optional extra) -->
-                    <button id="sidebar-close-btn" class="md:hidden p-2 text-gray-400 hover:text-gray-800 bg-gray-100 rounded-full">
+                    <button id="sidebar-close-btn" aria-label="Close Explore" class="md:hidden p-2 text-gray-400 hover:text-gray-800 bg-gray-100 rounded-full">
                         <i data-feather="x" width="18" height="18"></i>
                     </button>
                 </div>
 
-                <div id="filter-container" class="mt-6 flex gap-3 overflow-x-auto custom-scrollbar pb-2 mask-linear">
+                <div class="journey-tools"><button id="zoom-in" aria-label="Zoom in">+</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="reset-map">Reset map</button></div><div id="filter-container" class="mt-6 flex gap-3 overflow-x-auto custom-scrollbar pb-2 mask-linear">
                     <!-- Filters injected by JS -->
                 </div>
             </div>
@@ -83,7 +83,7 @@
             <div id="map" class="outline-none focus:outline-none"></div>
 
             <!-- Mobile Toggle Button (Floating "Explore") -->
-            <button id="mobile-toggle" class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-[1000] md:hidden bg-accent-navy text-white px-6 py-3 rounded-full shadow-2xl shadow-indigo-900/30 flex items-center gap-2 active:scale-95 transition-all hover:-translate-y-1" aria-label="Explore Locations">
+            <button id="mobile-toggle" aria-expanded="false" aria-controls="sidebar" class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-[1000] md:hidden bg-accent-navy text-white px-6 py-3 rounded-full shadow-2xl shadow-indigo-900/30 flex items-center gap-2 active:scale-95 transition-all hover:-translate-y-1" aria-label="Explore Locations">
                 <i data-feather="list"></i>
                 <span class="font-medium">Explore</span>
             </button>
