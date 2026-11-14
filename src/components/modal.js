@@ -1,4 +1,15 @@
 import feather from 'feather-icons';
+let returnFocus=null;
+function activateModal(modal){
+ returnFocus=document.activeElement;
+ modal.setAttribute('aria-label',modal.querySelector('h2,h3')?.textContent||'Place details');
+ modal.querySelector('button')?.focus();
+ modal.onkeydown=e=>{
+  if(e.key==='Escape')closeModal();
+  if(e.key==='Tab'){const nodes=[...modal.querySelectorAll('button')];if(!nodes.length)return;const first=nodes[0],last=nodes.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}
+ };
+}
+
 
 export const showModal = (location) => {
     const modal = document.getElementById('location-modal');
@@ -85,6 +96,7 @@ export const showModal = (location) => {
     };
 
     feather.replace();
+    activateModal(modal);
 };
 
 export const showConfirmModal = (message, onConfirm) => {
@@ -140,6 +152,7 @@ export const showConfirmModal = (message, onConfirm) => {
     };
 
     feather.replace();
+    activateModal(modal);
 };
 
 export const closeModal = () => {
@@ -147,5 +160,6 @@ export const closeModal = () => {
     if (modal) {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
+        if(returnFocus?.isConnected)returnFocus.focus();
     }
 };

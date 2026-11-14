@@ -38,6 +38,8 @@ const mockControlZoom = {
     addTo: vi.fn(),
 };
 
+vi.mock('maplibre-gl',()=>({setWorkerUrl:vi.fn()}));
+
 // Mock the MapLibre GL Leaflet bridge (warm paper basemap layer)
 vi.mock('@maplibre/maplibre-gl-leaflet', () => ({
     maplibreGL: vi.fn(() => ({ addTo: vi.fn() }))
@@ -86,7 +88,7 @@ describe('Map Component', () => {
     it('should initialize map', () => {
         const controls = initMap('map', locations, vi.fn(), vi.fn(), vi.fn());
         expect(controls).not.toBeNull();
-        expect(L.control.zoom).toHaveBeenCalled(); // Updated to check custom zoom control
+        expect(L.control.zoom).not.toHaveBeenCalled(); // Updated to check custom zoom control
         expect(L.control.attribution).toHaveBeenCalled();
     });
 

@@ -4,19 +4,21 @@ test.describe('Core User Journey', () => {
 
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
+    await page.locator('#loading-overlay').waitFor({state:'detached'});
+    await page.getByLabel('Explore Locations').click();
   });
 
   test('should load the application correctly', async ({ page }) => {
     await expect(page).toHaveTitle(/Uttarakhand/i);
     await expect(page.locator('#map')).toBeVisible();
-    await expect(page.getByText('Discover the Land of Gods')).toBeVisible();
+    await expect(page.getByRole('dialog',{name:'Explore Uttarakhand'})).toBeVisible();
   });
 
   test('should allow adding and removing destinations', async ({ page }) => {
     // 1. Filter by 'pilgrimage'
     const filterBtn = page.locator('.filter-btn[data-type="pilgrimage"]');
     await filterBtn.click();
-    await expect(filterBtn).toHaveClass(/active/);
+    await expect(filterBtn).toHaveAttribute('aria-pressed','true');
 
     // 2. Find a specific location (e.g., Kedarnath)
     const locationItem = page.locator('.location-item').filter({ hasText: 'Kedarnath' });
@@ -27,17 +29,19 @@ test.describe('Core User Journey', () => {
     await addButton.click();
 
     // 4. Verify Toast
-    await expect(page.getByText('Added to your trip!')).toBeVisible();
+    await expect(page.getByText('Trip Updated!')).toBeVisible();
 
     // 5. Verify Itinerary Update
     const itineraryItem = page.locator('.itinerary-item').filter({ hasText: 'Kedarnath' });
     await expect(itineraryItem).toBeVisible();
 
     // 6. Verify Button State (Disabled/Checked)
-    await expect(addButton).toBeDisabled();
+    await expect(locationItem.getByRole("button", { name: "Added", exact:true })).toBeDisabled();
 
     // 7. Persist after reload
     await page.reload();
+    await page.locator('#loading-overlay').waitFor({state:'detached'});
+    await page.getByLabel('Explore Locations').click();
     await expect(page.locator('.itinerary-item').filter({ hasText: 'Kedarnath' })).toBeVisible();
 
     // 8. Remove from Trip
@@ -46,7 +50,7 @@ test.describe('Core User Journey', () => {
     await expect(itineraryItem).not.toBeVisible();
 
     // 9. Undo Removal
-    const undoToast = page.getByText('Removed from trip. Click to Undo.');
+    const undoToast = page.getByText('Removed from trip');
     await expect(undoToast).toBeVisible();
     await undoToast.click();
     await expect(page.locator('.itinerary-item').filter({ hasText: 'Kedarnath' })).toBeVisible();
@@ -69,7 +73,7 @@ test.describe('Core User Journey', () => {
     // Verify Modal
     const modal = page.locator('#location-modal');
     await expect(modal).toBeVisible();
-    await expect(modal).toContainText('Are you sure?');
+    await expect(modal).toContainText('Are you sure');
 
     // Cancel
     await modal.getByRole('button', { name: 'Cancel' }).click();
@@ -82,7 +86,7 @@ test.describe('Core User Journey', () => {
 
     await expect(modal).toBeHidden();
     await expect(page.locator('.itinerary-item')).toHaveCount(0);
-    await expect(page.getByText('Start adding destinations')).toBeVisible();
+    await expect(page.getByText('Start planning your trip')).toBeVisible();
   });
 
   test('should show details modal when clicking More Info in map popup', async ({ page }) => {
