@@ -10,6 +10,7 @@ export function planner(L, locations, scene, distance, style, config) {
     trip = [],
     routeOn = config.autoRoute,
     details = false;
+  const modePages = { places: 0, trip: 0 };
   try {
     const v = JSON.parse(localStorage.getItem(config.storage) || "[]");
     if (Array.isArray(v))
@@ -377,7 +378,7 @@ export function planner(L, locations, scene, distance, style, config) {
   $('#sheet-toggle').after(mobileNav);
   const feedback = document.createElement('p'); feedback.id='save-feedback'; feedback.setAttribute('role','status'); $('#rows').after(feedback);
   const currentPool = () => view === 'trip' ? trip.map(id=>locations.find(l=>l.id===id)) : locations.filter(l=>filter==='all'||l.type===filter);
-  function openMode(mode) { view=mode; details=false; selected=null; page=0; setSheet(phone()?'half':'full'); if(mode==='trip'&&trip.length>1)fit(currentPool());else fit(); }
+  function openMode(mode) { modePages[view]=page; view=mode; details=false; selected=null; page=modePages[mode]; setSheet(phone()?'half':'full'); if(mode==='trip'&&trip.length>1)fit(currentPool());else fit(); }
   $('#browse-mode').onclick=()=>openMode('places'); $('#trip-mode').onclick=()=>openMode('trip');
   function stepPlace(delta) { const pool=currentPool(); page=Math.max(0,Math.min(Math.ceil(pool.length/capacity())-1,page+delta)); if(details&&pool[page])select(pool[page]);else { selected=null;render(); } }
   function render() {
@@ -581,7 +582,7 @@ export function planner(L, locations, scene, distance, style, config) {
   $("#reset").onclick = () => {
     selected = null;
     details = false;
-    view="places"; page=0; filter="all"; setSheet("peek");
+    view="places"; page=0; modePages.places=0; modePages.trip=0; filter="all"; setSheet("peek");
     fit();
     drawPins();
   };

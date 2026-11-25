@@ -235,3 +235,6 @@ button,.leaflet-container,.leaflet-control-attribution{font-family:Fraunces,seri
  body:has(.sketch-route) #panel[data-sheet="peek"] {height:135px;min-height:135px;}
  body:has(.sketch-route):has(#panel[data-sheet="peek"]) .map-tools {bottom:192px;}
 }
+
+/* The stop count is part of the tab label, not another segmented control. */
+#mobile-nav span:not(:empty){border-left:0;margin-left:7px;padding-left:0;}
