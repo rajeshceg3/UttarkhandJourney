@@ -129,3 +129,16 @@ button,.leaflet-container,.leaflet-control-attribution{font-family:Fraunces,seri
  #panel[data-view=trip] #back-places{width:100px;text-align:left;padding:0 7px}
  #panel[data-view=trip] #trip-summary{font-size:18px!important;white-space:nowrap;letter-spacing:-.3px;margin:6px 0}
 }
+
+@media(max-width:759px) and (max-height:430px){
+ #panel[data-view=trip] .section-heading{flex:0 0 44px;min-height:44px!important;height:44px;padding:0;margin:0;display:block}
+ #panel[data-view=trip] #back-places{display:block;min-height:44px;height:44px;width:100%;margin:0}
+ #panel[data-view=trip] #route-toggle{position:static;width:100%;height:44px;min-height:44px;margin:0}
+ #panel[data-view=trip] #rows{flex:0 0 auto}
+}
+
+#panel.has-detail .place-row.selected img{object-fit:fill!important;max-width:none!important;height:165px!important;border-radius:5px}
+@media(max-width:759px) and (min-height:431px){#panel.has-detail .place-row.selected img{height:145px!important}#panel.has-detail .place-row.selected .add-stop{bottom:10px;right:10px}}
+@media(max-width:350px) and (min-height:431px){#panel.has-detail .place-row.selected img{height:120px!important}}
+@media(max-width:759px) and (max-height:430px){#panel.has-detail .place-row.selected img{height:90px!important}}
+@media(min-width:760px){#route-note:not(.error){bottom:172px}}
