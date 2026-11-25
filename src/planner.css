@@ -147,3 +147,84 @@ button,.leaflet-container,.leaflet-control-attribution{font-family:Fraunces,seri
 
 @media(min-width:760px){#route-note:not(.error){left:390px;transform:rotate(-1deg);width:280px;max-width:calc(100vw - 700px)}}
 @media(min-width:1100px){#route-note:not(.error){left:445px;width:360px}}
+
+/* Mobile navigation has two named views and one reversible map disclosure. */
+#mobile-nav { display:none; }
+#save-feedback { margin:0; color:#3e5d48; font:18px Caveat,cursive; }
+@media(max-width:759px) and (min-height:431px) {
+ #panel,#panel[data-sheet="half"],#panel[data-sheet="full"] { inset:auto 8px 45px; width:auto; height:auto; max-height:calc(100dvh - 115px); padding:0 14px 8px; gap:0; }
+ #panel[data-sheet="peek"] {height:115px; min-height:115px; padding-bottom:4px;}
+ #sheet-toggle { display:block; flex:0 0 44px; min-height:44px; height:44px; text-align:center; font:22px Caveat,cursive; padding:6px 0 0; position:relative; }
+ #sheet-toggle:before { content:""; position:absolute; width:30px; height:2px; top:4px; left:calc(50% - 15px); background:#7b8d7c; }
+ #mobile-nav {display:flex; flex:0 0 44px; height:44px; gap:8px; margin:0 0 6px;}
+ #mobile-nav button {flex:1; min-height:44px; border:1px solid #728473; border-radius:3px 7px 4px 5px; background:transparent;font:22px Caveat,cursive;}
+ #mobile-nav button[aria-pressed="true"] {background:#3e5d48;color:#f4f6f8;}
+ #mobile-nav span:not(:empty) {border-left:1px solid currentColor;margin-left:6px;padding-left:7px;}
+ #panel #trip-open {display:none!important;}
+ #panel .panel-heading {display:none;}
+ #panel[data-sheet="peek"] .filter-wrap,#panel[data-sheet="peek"] .section-heading,#panel[data-sheet="peek"] #rows,#panel[data-sheet="peek"] .pager,#panel[data-sheet="peek"] .panel-bottom,#panel[data-sheet="peek"] #trip-summary,#panel[data-sheet="peek"] #save-feedback {display:none!important;}
+ #panel #peek-preview {display:none!important;}
+ #panel .filter-wrap {padding:0 0 5px;flex:0 0 49px;}
+ #panel[data-view="trip"] .filter-wrap,#panel.has-detail .filter-wrap {display:none;}
+ #panel #filters {gap:5px;flex-wrap:nowrap;}
+ #panel #filters button {padding:4px 9px;min-height:44px;font:22px Caveat,cursive;}
+ #panel .section-heading {padding:4px 0 6px;min-height:0;flex:0 0 auto;display:block;}
+ #panel #section-title {display:block;font:22px Caveat,cursive;margin:0 0 3px;}
+ #panel #section-copy {display:none;}
+ #panel.has-detail #section-copy {display:block;font:14px/1.3 Fraunces,serif;min-height:0;margin-bottom:6px;}
+ #panel #back-places {display:block;min-height:44px;height:44px;float:left;margin:0 8px 0 0;padding:4px 8px;font:18px Caveat,cursive;}
+ #panel.has-detail #section-title {padding-top:10px;min-height:44px;}
+ #panel #rows {flex:0 0 auto;overflow:hidden;}
+ #panel .place-row,#panel .place-select {height:78px;min-height:78px;}
+ #panel .place-row {padding:2px 0;gap:5px;position:relative;}
+ #panel .place-select {padding:0;gap:10px;}
+ #panel .place-select img {width:76px;height:57px!important;object-fit:contain!important;flex:0 0 76px;}
+ #panel .place-select strong {font:14px/1.25 Fraunces,serif;display:block!important;}
+ #panel .place-type {font:18px Caveat,cursive;margin:3px 0 0;}
+ #panel.has-detail .place-select {padding-right:0!important;}
+ #panel.has-detail .place-select img {height:74px!important;width:99px;flex-basis:99px;}
+ #panel.has-detail .place-select>span {display:none;}
+ #panel .add-stop {position:static!important;transform:none;width:85px;min-width:85px;height:44px;margin:0;font:18px Caveat,cursive!important;}
+ #panel .pager {display:flex;min-height:44px;height:44px;flex:0 0 44px;}
+ #panel .pager button {font:18px Caveat,cursive;min-height:44px;}
+ #panel #page-label {font:18px Caveat,cursive;}
+ #panel .panel-bottom {display:none;}
+ #panel #save-feedback {font:18px Caveat,cursive;min-height:22px;}
+ #panel #trip-summary {display:none;}
+ #panel[data-view="trip"] #trip-summary {display:block;order:8;margin:3px 0;font:18px Caveat,cursive;}
+ #panel .empty-state {font:18px/1.3 Caveat,cursive!important;margin:5px 0 10px;}
+ body:has(#panel[data-sheet="peek"]) .map-tools {display:flex!important;left:12px;right:auto;bottom:172px;}
+ body:has(#panel:not([data-sheet="peek"])) .map-tools {display:none!important;}
+ .map-route-label {font-size:18px!important;width:242px!important;line-height:1.2;}
+ body:has(#panel:not([data-sheet="peek"])) .map-route-label {display:none;}
+ #route-note:not(.error) {display:none!important;}
+ #route-note.error {bottom:auto!important;top:80px!important;left:12px!important;right:12px!important;font:18px Caveat,cursive!important;}
+ .map-title {top:12px!important;}
+}
+@media(max-width:759px) and (min-height:431px) {
+ #mobile-nav button {font:22px Caveat,cursive!important;white-space:nowrap;display:flex;align-items:center;justify-content:center;}
+ #panel.has-detail .place-row {height:100px!important;min-height:100px!important;display:flex!important;align-items:center!important;}
+ #panel.has-detail .place-row .place-select {height:96px!important;min-height:96px!important;flex:1!important;}
+ #panel.has-detail .place-row.selected img {height:90px!important;width:120px!important;flex-basis:120px!important;object-fit:contain!important;max-width:120px!important;border:0;}
+ #panel.has-detail .place-row .add-stop {display:block!important;position:static!important;align-self:center!important;font:18px Caveat,cursive!important;}
+ #panel.has-detail .place-row .add-stop[hidden] {display:none!important;}
+ #panel.has-detail #section-title {font:22px Caveat,cursive!important;}
+}
+@media(max-width:759px) and (min-height:431px) {
+ #panel[data-view="trip"][data-detail="false"] #back-places {display:none!important;}
+ #panel[data-view="trip"][data-detail="false"] #section-title {display:none;}
+ #panel[data-view="trip"][data-detail="false"] .section-heading {padding:0;}
+ #panel.has-detail .place-select {pointer-events:none;}
+ #panel:not(.has-detail) #section-title {font:22px Caveat,cursive!important;}
+ #panel #mobile-nav {position:relative;z-index:1;}
+}
+@media(max-width:759px) and (min-height:431px) {
+ #panel[data-view="places"]:not(.has-detail):not([data-sheet="peek"]) .filter-wrap {display:block!important;}
+ #panel[data-view="places"]:not(.has-detail):not([data-sheet="peek"]) .section-heading {display:block!important;min-height:0!important;height:auto!important;}
+ #panel[data-view="trip"][data-detail="false"] .section-heading {display:none!important;}
+ #panel #rows {min-height:0!important;}
+}
+@media(max-width:759px) and (min-height:431px) {
+ #panel .pager[hidden] {display:none!important;}
+ #panel[data-sheet="peek"] #trip-summary:not(:empty) {display:block!important;font:18px Caveat,cursive!important;white-space:nowrap;margin:0;text-align:center;line-height:20px;}
+}
