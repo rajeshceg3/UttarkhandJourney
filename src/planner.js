@@ -464,7 +464,7 @@ export function planner(L, locations, scene, distance, style, config) {
       action.className = "add-stop";
       action.textContent =
         view === "trip" ? "Remove" : trip.includes(loc.id) ? "Saved" : "Add to trip";
-      if(innerWidth>=760)action.textContent=view==="trip"?"−":trip.includes(loc.id)?"✓":"+";
+      if(!phone())action.textContent=view==="trip"?"−":trip.includes(loc.id)?"✓":"+";
       action.ariaLabel =
         view === "trip"
           ? `Remove ${loc.title}`
@@ -562,7 +562,7 @@ export function planner(L, locations, scene, distance, style, config) {
     };
     $("#filters").append(b);
   }
-  $('#sheet-toggle').onclick = () => { setSheet(sheet==='peek'?'half':'peek'); if(routeOn&&trip.length>1)fit(routePoints);else fit(); };
+  $('#sheet-toggle').onclick = () => { setSheet(sheet==='peek'?'half':'peek'); if(details&&selected){ map.setView([selected.lat,selected.lng],Math.max(map.getZoom(),11),{animate:false}); map.panBy([0,Math.round(innerHeight/2-(80+$('#panel').getBoundingClientRect().top)/2)],{animate:false}); } else if(routeOn&&trip.length>1)fit(routePoints);else fit(); };
   $('#trip-open').onclick=()=>openMode('trip');
   $('#back-places').onclick=()=>{ if(details){details=false;selected=null;render();fit(view==='trip'&&trip.length?currentPool():locations);}else openMode('places'); };
   $('#previous').onclick=()=>stepPlace(-1); $('#next').onclick=()=>stepPlace(1);

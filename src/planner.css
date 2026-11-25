@@ -228,3 +228,6 @@ button,.leaflet-container,.leaflet-control-attribution{font-family:Fraunces,seri
  #panel .pager[hidden] {display:none!important;}
  #panel[data-sheet="peek"] #trip-summary:not(:empty) {display:block!important;font:18px Caveat,cursive!important;white-space:nowrap;margin:0;text-align:center;line-height:20px;}
 }
+@media(min-width:351px) and (max-width:759px) and (min-height:431px) {
+ #panel[data-sheet="peek"] #trip-summary:not(:empty) {display:none!important;}
+}
