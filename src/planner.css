@@ -231,3 +231,7 @@ button,.leaflet-container,.leaflet-control-attribution{font-family:Fraunces,seri
 @media(min-width:351px) and (max-width:759px) and (min-height:431px) {
  #panel[data-sheet="peek"] #trip-summary:not(:empty) {display:none!important;}
 }
+@media(max-width:350px) and (min-height:431px) {
+ body:has(.sketch-route) #panel[data-sheet="peek"] {height:135px;min-height:135px;}
+ body:has(.sketch-route):has(#panel[data-sheet="peek"]) .map-tools {bottom:192px;}
+}
