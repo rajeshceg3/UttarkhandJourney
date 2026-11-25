@@ -29,20 +29,31 @@ function sceneBox(){
  return portrait?{left:18,right:innerWidth-18,top:innerHeight<700?62:145,bottom:card.top-12}:{left:card.right+28,right:innerWidth-38,top:120,bottom:innerHeight-100};
 }
 function drawPins(){
- otherPins.clearLayers();const used=[];const box=sceneBox();
- const art=document.querySelector('.map-art')?.getBoundingClientRect();
- stops.forEach((loc,i)=>{
- if(i===index&&!wandering)return;const p=map.latLngToContainerPoint([loc.lat,loc.lng]);
- if(p.x<box.left+40||p.x>box.right-40||p.y<box.top+24||p.y>box.bottom-24)return;
- if(!wandering&&art&&p.x>art.left-45&&p.x<art.right+45&&p.y>art.top-30&&p.y<art.bottom+30)return;
- if(used.some(q=>q.distanceTo(p)<90))return;used.push(p);
- const marker=L.marker([loc.lat,loc.lng],{keyboard:false,icon:L.divIcon({className:'quiet-marker',iconSize:[90,48],iconAnchor:[45,24],html:`<button aria-label="Visit ${loc.title}"><i></i><span>${loc.id==='corbett'?'Corbett':loc.title}</span></button>`})}).addTo(otherPins);
- marker.on('click',()=>show(i));
- });
+ otherPins.clearLayers();
+ if(!wandering)return;
+ const occupied=[...document.querySelectorAll('.world-title,.map-tools,#return-story,footer')].map(e=>e.getBoundingClientRect());
+ const width=innerWidth<760?112:145,height=44;
+ const bounds={left:10,right:innerWidth-10,top:12,bottom:innerHeight-52};
+ const boxes=[];
+ const collides=r=>[...occupied,...boxes].some(b=>r.left<b.right+6&&r.right>b.left-6&&r.top<b.bottom+6&&r.bottom>b.top-6);
+ for(const loc of stops){
+  const p=map.latLngToContainerPoint([loc.lat,loc.lng]);
+  const candidates=[];
+  for(let y=bounds.top;y<=bounds.bottom-height;y+=8)for(let x=bounds.left;x<=bounds.right-width;x+=12){
+   const r={left:x,right:x+width,top:y,bottom:y+height};if(!collides(r))candidates.push({...r,d:Math.hypot(x+width/2-p.x,y+height/2-p.y)});
+  }
+  candidates.sort((a,b)=>a.d-b.d);const r=candidates[0];if(!r)continue;boxes.push(r);
+  const point=L.point(r.left+width/2,r.top+height/2);const ll=map.containerPointToLatLng(point);
+  L.polyline([[loc.lat,loc.lng],ll],{color:'#5c7b68',weight:1,opacity:.8,interactive:false}).addTo(otherPins);
+  L.circleMarker([loc.lat,loc.lng],{radius:3,color:'#f0f4ed',fillColor:'#426b56',fillOpacity:1,weight:1,interactive:false}).addTo(otherPins);
+  const marker=L.marker(ll,{keyboard:false,icon:L.divIcon({className:'overview-marker',iconSize:[width,height],iconAnchor:[width/2,height/2],html:`<button aria-label="Visit ${loc.title}" style="width:${width}px">${loc.id==='corbett'?'Corbett':loc.title}</button>`})}).addTo(otherPins);
+  L.DomEvent.disableClickPropagation(marker.getElement());
+  marker.getElement().querySelector('button').onclick=()=>show(stops.indexOf(loc));
+ }
 }
 function sizeArt(){const box=sceneBox();const avail=box.bottom-box.top;document.documentElement.style.setProperty('--art-width',Math.min(innerWidth<760?230:330,Math.max(115,(avail-80)*4/3))+'px');}
 function focus(animate=true){
- moving=true;wandering=false;document.body.classList.remove('wandering');$('#return-story').hidden=true;
+ clearTimeout(overview.timer);moving=true;wandering=false;document.body.classList.remove('wandering');$('#return-story').hidden=true;
  sizeArt();const loc=stops[index],box=sceneBox();
  const target=L.point((box.left+box.right)/2,(box.top+box.bottom)/2);
  const z=loc.id==='dehradun'||loc.id==='mussoorie'||loc.id==='rishikesh'?8.8:8.2;
@@ -54,7 +65,6 @@ function focus(animate=true){
 function render(){
  const loc=stops[index];
  $('#chapter-count').textContent=`${String(index+1).padStart(2,'0')} / ${stops.length}`;
- $('#region-note').textContent=index<4?'RIVER & HILLS':index<8?'HIGH COUNTRY':'FOREST & LAKE';
  $('#chapter-title').textContent=loc.chapter;
  $('#place-title').textContent=loc.id==='corbett'?'Corbett National Park':loc.title;
  $('#story-copy').textContent=expanded?loc.deep:loc.line;
@@ -72,13 +82,19 @@ $('#next').onclick=()=>show((index+1)%stops.length);
 $('#back').onclick=()=>{if(index)show(index-1);};
 $('#deeper').onclick=()=>{expanded=!expanded;render();requestAnimationFrame(()=>{if(!wandering)focus(false);else drawPins();});};
 $('#return-story').onclick=()=>focus();
-$('#overview').onclick=()=>{moving=true;map.fitBounds(L.latLngBounds(stops.map(l=>[l.lat,l.lng])),{paddingTopLeft:[innerWidth<760?22:440,innerWidth<760?195:100],paddingBottomRight:[35,innerWidth<760?$('#story-card').getBoundingClientRect().height+60:100],animate:!reduced.matches});wandering=true;document.body.classList.add('wandering');drawPins();$('#return-story').hidden=false;setTimeout(()=>moving=false,500);};
+function overview(){
+ clearTimeout(focus.timer);clearTimeout(overview.timer);moving=true;wandering=true;document.body.classList.add('wandering');$('#return-story').hidden=false;
+ const portrait=innerWidth<760&&innerHeight>430;
+ map.stop();map.fitBounds(L.latLngBounds(stops.map(l=>[l.lat,l.lng])),{paddingTopLeft:[portrait?75:innerWidth*.3,portrait?160:100],paddingBottomRight:[portrait?85:innerWidth*.22,portrait?100:95],animate:false});
+ drawPins();overview.timer=setTimeout(()=>moving=false,100);
+}
+$('#overview').onclick=overview;
 $('#zoom-in').onclick=()=>{map.zoomIn();wander();};$('#zoom-out').onclick=()=>{map.zoomOut();wander();};
 function wander(){if(moving)return;wandering=true;document.body.classList.add('wandering');$('#return-story').hidden=false;}
 map.on('dragstart',()=>{moving=false;wander();});map.on('zoomstart',()=>{if(!moving)wander();});map.on('moveend zoomend',drawPins);
 $('#about-open').onclick=()=>$('#about').showModal();$('#about-close').onclick=()=>$('#about').close();
 $('#about').addEventListener('click',e=>{if(e.target===$('#about'))$('#about').close();});
 document.addEventListener('keydown',e=>{if($('#about').open||e.altKey||e.ctrlKey||e.metaKey||e.target.closest('button,a'))return;if(e.key==='ArrowRight'){e.preventDefault();show((index+1)%stops.length);}if(e.key==='ArrowLeft'&&index){e.preventDefault();show(index-1);}});
-let resize;addEventListener('resize',()=>{clearTimeout(resize);resize=setTimeout(()=>{map.invalidateSize();focus(false);},150);});
+let resize;addEventListener('resize',()=>{clearTimeout(resize);resize=setTimeout(()=>{map.invalidateSize();if(wandering)overview();else focus(false);},150);});
 show(0,false);
 map.whenReady(()=>base.getMaplibreMap()?.on('error',()=>$('#tile-note').hidden=false));

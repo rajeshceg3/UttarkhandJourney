@@ -27,3 +27,12 @@ footer p{max-width:calc(100% - 125px)}
 
 .wandering .map-art{display:none}#about p{font-size:14px;line-height:1.4;margin:12px 0}#about h2{font-size:24px;margin-bottom:16px}#about{padding:23px}#tile-note{font-size:14px}
 @media(max-width:350px){#about{padding:20px}#about p{font-size:14px;line-height:1.35;margin:10px 0}}
+
+/* Gate revision: one narrative hierarchy; full-map overview. */
+.wandering #story-card{display:none}.overview-marker button{min-height:44px;background:#edf2ed;border:1px solid #79907e;border-radius:3px 8px 3px 6px;font-size:14px;line-height:1.1;padding:5px 7px;box-shadow:2px 2px 0 #4866521c}.overview-marker button:hover{background:#d6e2d9}#first-scene{white-space:nowrap;max-width:none;font-size:18px}.world-title h1{margin-top:0}
+@media(min-width:760px) and (min-height:431px){#passage{margin:auto 0 0}#story-copy{min-height:0}#story-card .story-optional{margin:18px 0 auto;padding-bottom:28px}#place-title{margin-bottom:20px}}
+@media(max-height:430px){#first-scene{font-size:16px}.story-nav{gap:4px}.story-nav #next{padding:5px 8px}.wandering .world-title{left:20px}.wandering #return-story{top:18px;right:68px}.wandering .map-tools{right:15px;bottom:48px}}
+.overview-marker button{font-family:Fraunces,Georgia,serif}.wandering #overview{display:none}.wandering .map-tools:has(#zoom-in[hidden]){display:none}
+@media(max-width:759px) and (min-height:431px){.wandering .map-tools{display:none}.wandering #return-story{max-width:none;white-space:nowrap;top:91px}}
+@media(max-width:350px) and (min-height:431px){.wandering #return-story{top:59px}}
+@media(max-height:430px){.wandering .map-tools{display:none}}
